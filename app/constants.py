@@ -8,5 +8,5 @@ registered the OAuth App; config `github.client_id` overrides it if set.
 GITHUB_CLIENT_ID = "Ov23li1zSZj6zdhurptk"  # gitkosh OAuth App (Device Flow), public/safe to ship
 
 # App version + where the in-app updater looks for new releases.
-VERSION = "0.11.0"
+VERSION = "0.12.0"
 RELEASES_REPO = "harsh-bajpai2615/gitkosh"

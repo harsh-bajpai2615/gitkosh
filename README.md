@@ -15,7 +15,7 @@
 
 <br/>
 
-<img src="docs/screenshot.png" width="540" alt="GitKosh app" />
+<img src="docs/demo.gif" width="560" alt="GitKosh — Setup, Showcase, Insights, Contests" />
 
 </div>
 

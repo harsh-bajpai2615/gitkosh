@@ -50,7 +50,21 @@ PROVIDER_MODEL = {"gemini": "gemini-2.5-flash", "groq": "llama-3.3-70b-versatile
 BG = "#EEF0F6"; CARD = "#FFFFFF"; INK = "#1F2433"; MUTED = "#6B7280"
 ACCENT = "#5B5BD6"; ACCENT_DK = "#4F46E5"; BORDER = "#E3E6EF"
 OK_FG = "#0F7B3B"; OK_BG = "#DCFCE7"; NO_FG = "#B42318"; NO_BG = "#FDECEA"
-LOCK_FG = "#9AA1B2"; LOCK_BG = "#F1F3F8"
+LOCK_FG = "#9AA1B2"; LOCK_BG = "#EEF0FA"
+GRAD1 = "#5B5BD6"; GRAD2 = "#8B5CF6"; TAB_HOVER = "#E3E3FB"
+
+
+def _rgb(h):
+    h = h.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _lerp(a, b, t):
+    return tuple(int(round(a[i] + (b[i] - a[i]) * t)) for i in range(3))
+
+
+def _hx(c):
+    return "#%02x%02x%02x" % c
 FONT = "Helvetica Neue"; MONO = "Menlo"
 
 
@@ -98,6 +112,8 @@ class App:
         self._pages_url = ""
         self._post_short = ""
         self._card_img = None
+        self._grad_cache = {}
+        self._active_tab = "main"
 
         root.title("GitKosh")
         root.configure(bg=BG)
@@ -183,16 +199,10 @@ class App:
 
         b = self.body
 
-        # header
-        head = tk.Frame(b, bg=CARD, highlightbackground=BORDER, highlightthickness=1)
-        head.pack(fill="x", padx=16, pady=16)
-        self.header = head
-        if self.logo_img:
-            tk.Label(head, image=self.logo_img, bg=CARD).pack(side="left", padx=(14, 12), pady=12)
-        txt = tk.Frame(head, bg=CARD); txt.pack(side="left", pady=12)
-        tk.Label(txt, text="GitKosh", bg=CARD, fg=INK, font=(FONT, 22, "bold")).pack(anchor="w")
-        tk.Label(txt, text=f"Sync your coding-platform solutions to GitHub  ·  v{constants.VERSION}",
-                 bg=CARD, fg=MUTED, font=(FONT, 12)).pack(anchor="w")
+        # header — gradient hero banner (Canvas)
+        self.header_canvas = tk.Canvas(b, height=116, highlightthickness=0, bg=BG)
+        self.header_canvas.pack(fill="x", padx=16, pady=(16, 10))
+        self.header_canvas.bind("<Configure>", self._draw_header)
 
         # update banner (hidden unless a newer release exists)
         self.update_bar = tk.Frame(b, bg="#FFF7E6", highlightbackground="#F0D58C", highlightthickness=1)
@@ -207,9 +217,11 @@ class App:
         for key, label in [("main", "⚙  Setup & Sync"), ("show", "✨  Showcase"),
                            ("ins", "📊  Insights"), ("contest", "🏆  Contests")]:
             btn = tk.Label(nav, text=label, bg=LOCK_BG, fg=MUTED, font=(FONT, 11, "bold"),
-                           padx=13, pady=8, cursor="hand2")
+                           padx=14, pady=9, cursor="hand2")
             btn.pack(side="left", padx=(0, 6))
             btn.bind("<Button-1>", lambda e, k=key: self._show_tab(k))
+            btn.bind("<Enter>", lambda e, k=key: self._tab_hover(k, True))
+            btn.bind("<Leave>", lambda e, k=key: self._tab_hover(k, False))
             self.tab_btns[key] = btn
 
         self.page_main = tk.Frame(b, bg=BG)
@@ -344,6 +356,54 @@ class App:
         _start = os.environ.get("GITKOSH_TAB")
         self._show_tab(_start if _start in self._pages else "main")
 
+    # ---------------- premium chrome (header, animations) ----------------
+    def _draw_header(self, event):
+        c = self.header_canvas
+        w, h = max(event.width, 1), 116
+        c.delete("all")
+        img = self._grad_cache.get(w)
+        if img is None:
+            try:
+                from io import BytesIO
+                from PIL import Image, ImageDraw
+                a, b = _rgb(GRAD1), _rgb(GRAD2)
+                strip = Image.new("RGB", (w, 1))
+                px = strip.load()
+                for i in range(w):
+                    px[i, 0] = _lerp(a, b, i / max(w - 1, 1))
+                g = strip.resize((w, h)).convert("RGBA")
+                mask = Image.new("L", (w, h), 0)
+                ImageDraw.Draw(mask).rounded_rectangle([0, 0, w - 1, h - 1], radius=22, fill=255)
+                g.putalpha(mask)
+                buf = BytesIO(); g.save(buf, "PNG")
+                img = tk.PhotoImage(data=base64.b64encode(buf.getvalue()).decode("ascii"))
+                self._grad_cache[w] = img
+            except Exception:  # noqa: BLE001 — Pillow missing: flat accent fallback
+                c.create_rectangle(0, 0, w, h, fill=ACCENT, outline="")
+        if img is not None:
+            c.create_image(0, 0, anchor="nw", image=img)
+        if self.logo_img:
+            c.create_image(40, h // 2, image=self.logo_img)
+        c.create_text(84, 42, anchor="w", text="GitKosh", fill="#FFFFFF", font=(FONT, 23, "bold"))
+        c.create_text(84, 74, anchor="w", fill="#E7E7FF", font=(FONT, 12),
+                      text=f"Sync your coding-platform solutions to GitHub   ·   v{constants.VERSION}")
+
+    def _animate_color(self, widget, key, start, end, steps=7, i=1):
+        try:
+            widget.config(**{key: _hx(_lerp(_rgb(start), _rgb(end), i / steps))})
+        except tk.TclError:
+            return
+        if i < steps:
+            self.root.after(16, lambda: self._animate_color(widget, key, start, end, steps, i + 1))
+
+    def _animate_number(self, label, target, steps=22, i=1):
+        try:
+            label.config(text=str(int(round(target * i / steps))))
+        except tk.TclError:
+            return
+        if i < steps:
+            self.root.after(18, lambda: self._animate_number(label, target, steps, i + 1))
+
     # ---------------- showcase tab ----------------
     def _build_showcase(self, parent):
         intro = self._card(parent)
@@ -393,13 +453,27 @@ class App:
         self.post_box.insert("1.0", "Click “Generate post” to draft a dev.to / LinkedIn / X update "
                              "from your recent solves (uses your AI provider when available).")
 
+    def _tab_hover(self, key, entering):
+        if key == self._active_tab:
+            return
+        b = self.tab_btns[key]
+        self._animate_color(b, "bg", LOCK_BG, TAB_HOVER, steps=5) if entering \
+            else self._animate_color(b, "bg", TAB_HOVER, LOCK_BG, steps=5)
+
     def _show_tab(self, key):
         for p in self._pages.values():
             p.pack_forget()
         self._pages[key].pack(fill="x")
+        prev = self._active_tab
+        if prev != key and prev in self.tab_btns:
+            self._animate_color(self.tab_btns[prev], "bg", ACCENT, LOCK_BG)
+            self._animate_color(self.tab_btns[prev], "fg", "#FFFFFF", MUTED)
         for k, btn in self.tab_btns.items():
-            on = k == key
-            btn.config(bg=ACCENT if on else LOCK_BG, fg="#FFFFFF" if on else MUTED)
+            if k not in (key, prev):
+                btn.config(bg=LOCK_BG, fg=MUTED)
+        self._animate_color(self.tab_btns[key], "bg", LOCK_BG, ACCENT)
+        self._animate_color(self.tab_btns[key], "fg", MUTED, "#FFFFFF")
+        self._active_tab = key
         if key == "show" and self._card_img is None:
             self._refresh_card()
         if key == "ins":
@@ -581,8 +655,12 @@ class App:
                  ("Optimal", opt), ("Total", a["total"])]
         for i, (l, v) in enumerate(tiles):
             cell = tk.Frame(self.ins_metrics, bg=CARD); cell.grid(row=0, column=i, padx=(0, 16), sticky="w")
-            tk.Label(cell, text=str(v), bg=CARD, fg=INK, font=(FONT, 20, "bold")).pack(anchor="w")
+            num = tk.Label(cell, text=("0" if isinstance(v, int) else str(v)), bg=CARD, fg=INK,
+                           font=(FONT, 20, "bold"))
+            num.pack(anchor="w")
             tk.Label(cell, text=l, bg=CARD, fg=MUTED, font=(FONT, 10)).pack(anchor="w")
+            if isinstance(v, int) and v > 0:
+                self._animate_number(num, v)
         self.ins_strengths.config(text="Strongest topics:   " + ("   ·   ".join(a["strengths"]) or "—"))
         tot = sum(a["difficulty"].values()) or 1
         lines = []
