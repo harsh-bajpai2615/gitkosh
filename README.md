@@ -40,6 +40,8 @@ GitKosh is a tiny macOS app that turns your scattered competitive-programming so
 - **AI solution coach.** Every write-up honestly assesses whether *your* solution is optimal — and suggests a better approach (with complexity) when it isn't.
 - **Insights dashboard.** In-app analytics: topic strengths, difficulty mastery, pace & streak, “% optimal”, a *revisit* list, and copy-able **résumé bullets** (also saved as `insights.md`).
 - **Quiz me.** Spaced-repetition recall — GitKosh shows a past problem and you recall the approach before revealing it.
+- **Contest tracker.** Upcoming rounds across Codeforces & LeetCode, plus your Codeforces rating curve — right in the app.
+- **Browser extension (beta).** A companion that captures accepted LeetCode submissions **in real time** and pushes to GitHub — so it works on **Windows & Linux** too.
 - **Reset & re-backfill.** One click rebuilds the whole repo as a clean, backdated history that mirrors your real solving timeline.
 - **Bring-your-own AI — including free & local.** Google Gemini, Groq, or **one-click local Ollama** (no key, no limits, fully private).
 - **Daily auto-sync.** A background scheduler runs even when the app is closed — no reminders, no clicking.
@@ -59,6 +61,19 @@ A live stats card, a one-click portfolio website, and shareable progress posts �
 <div align="center"><img src="docs/insights.png" width="540" alt="GitKosh Insights tab" /></div>
 
 Topic strengths, difficulty mastery, solving pace, AI solution-quality coaching, résumé bullets, and a built-in spaced-repetition quiz.
+
+## 🏆 Contests tab
+
+<div align="center"><img src="docs/contests.png" width="540" alt="GitKosh Contests tab" /></div>
+
+Upcoming Codeforces & LeetCode rounds with one-click open, plus your Codeforces rating curve.
+
+## 🌐 Browser extension (beta) — real-time + cross-platform
+
+The macOS app is the full experience; the [`extension/`](extension) folder is a lightweight
+**Chrome/Edge/Brave** companion that pushes your **accepted LeetCode submissions to GitHub the
+instant they pass** — so it also runs on **Windows & Linux**. Load it unpacked, paste a GitHub
+token + repo, and solve. See [`extension/README.md`](extension/README.md).
 
 ## 📥 Install
 
@@ -131,7 +146,8 @@ Cut a release that installed copies will auto-update to:
 
 ```
 app/            macOS app — GUI, WebKit login, sync core, scheduler, updater, Ollama setup
-gitkosh/       platform extractors, README generator, GitHub helpers
+gitkosh/        platform extractors, README generator, GitHub helpers
+extension/      cross-platform browser extension (real-time LeetCode → GitHub)
 setup.py        py2app bundle config           build_app.sh   build .app + .dmg
 release.sh      build + publish a release       tools/         app-icon generator
 ```

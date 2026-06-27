@@ -204,17 +204,20 @@ class App:
         # segmented tabs (Setup & Sync  /  Showcase)
         nav = tk.Frame(b, bg=BG); nav.pack(fill="x", padx=16, pady=(2, 8))
         self.tab_btns = {}
-        for key, label in [("main", "⚙  Setup & Sync"), ("show", "✨  Showcase"), ("ins", "📊  Insights")]:
-            btn = tk.Label(nav, text=label, bg=LOCK_BG, fg=MUTED, font=(FONT, 12, "bold"),
-                           padx=16, pady=8, cursor="hand2")
-            btn.pack(side="left", padx=(0, 8))
+        for key, label in [("main", "⚙  Setup & Sync"), ("show", "✨  Showcase"),
+                           ("ins", "📊  Insights"), ("contest", "🏆  Contests")]:
+            btn = tk.Label(nav, text=label, bg=LOCK_BG, fg=MUTED, font=(FONT, 11, "bold"),
+                           padx=13, pady=8, cursor="hand2")
+            btn.pack(side="left", padx=(0, 6))
             btn.bind("<Button-1>", lambda e, k=key: self._show_tab(k))
             self.tab_btns[key] = btn
 
         self.page_main = tk.Frame(b, bg=BG)
         self.page_show = tk.Frame(b, bg=BG)
         self.page_ins = tk.Frame(b, bg=BG)
-        self._pages = {"main": self.page_main, "show": self.page_show, "ins": self.page_ins}
+        self.page_contest = tk.Frame(b, bg=BG)
+        self._pages = {"main": self.page_main, "show": self.page_show,
+                       "ins": self.page_ins, "contest": self.page_contest}
         self.page_main.pack(fill="x")
         b = self.page_main
 
@@ -334,9 +337,10 @@ class App:
                                              fg="#374151", relief="flat", borderwidth=0)
         self.log.pack(fill="both", expand=True, padx=10, pady=(4, 10))
 
-        # showcase + insights pages
+        # showcase + insights + contests pages
         self._build_showcase(self.page_show)
         self._build_insights(self.page_ins)
+        self._build_contests(self.page_contest)
         _start = os.environ.get("GITKOSH_TAB")
         self._show_tab(_start if _start in self._pages else "main")
 
@@ -400,6 +404,8 @@ class App:
             self._refresh_card()
         if key == "ins":
             self._refresh_insights()
+        if key == "contest":
+            self._refresh_contests()
         self.root.after(50, lambda: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
     def _store_items(self):
@@ -631,6 +637,95 @@ class App:
     def _quiz_reveal(self):
         c = self._quiz_cur or {}
         self.quiz_a.config(text=c.get("approach") or "(no approach stored — open the solution in your repo)")
+
+    # ---------------- contests tab ----------------
+    def _build_contests(self, parent):
+        intro = self._card(parent)
+        tk.Label(intro, text="🏆  Contests", bg=CARD, fg=INK,
+                 font=(FONT, 15, "bold")).pack(anchor="w", padx=14, pady=(12, 2))
+        tk.Label(intro, text="Upcoming rounds across platforms, and your Codeforces rating curve.",
+                 bg=CARD, fg=MUTED, font=(FONT, 11), wraplength=620, justify="left").pack(anchor="w", padx=14, pady=(0, 12))
+
+        ttk.Label(parent, text="UPCOMING", style="Section.TLabel").pack(anchor="w", padx=18, pady=(4, 4))
+        c = self._card(parent)
+        top = tk.Frame(c, bg=CARD); top.pack(fill="x", padx=14, pady=(12, 4))
+        ttk.Button(top, text="Refresh", style="Ghost.TButton", command=self._refresh_contests).pack(side="left")
+        self.contests_list = tk.Frame(c, bg=CARD); self.contests_list.pack(fill="x", padx=14, pady=(4, 12))
+
+        ttk.Label(parent, text="CODEFORCES RATING", style="Section.TLabel").pack(anchor="w", padx=18, pady=(4, 4))
+        rc = self._card(parent)
+        self.rating_lbl = tk.Label(rc, text="", bg=CARD, fg=INK, font=(FONT, 12, "bold"), anchor="w")
+        self.rating_lbl.pack(anchor="w", fill="x", padx=14, pady=(12, 4))
+        self.rating_canvas = tk.Canvas(rc, height=120, bg="#FBFBFE", highlightthickness=1,
+                                       highlightbackground=BORDER)
+        self.rating_canvas.pack(fill="x", padx=14, pady=(0, 12))
+
+    def _refresh_contests(self):
+        if getattr(self, "_contests_loading", False):
+            return
+        self._contests_loading = True
+        for w in self.contests_list.winfo_children():
+            w.destroy()
+        tk.Label(self.contests_list, text="Loading…", bg=CARD, fg=MUTED, font=(FONT, 11)).pack(anchor="w")
+        threading.Thread(target=self._run_contests, daemon=True).start()
+
+    def _run_contests(self):
+        from . import contests as C
+        try:
+            up = C.upcoming()
+        except Exception:  # noqa: BLE001
+            up = []
+        handle = (self.cfg.get("platforms", {}).get("codeforces", {}) or {}).get("handle", "")
+        rating = C.cf_rating(handle)
+        self._contests_loading = False
+        self.root.after(0, lambda: self._render_contests(up, rating, handle))
+
+    def _render_contests(self, up, rating, handle):
+        import datetime as _dt
+        for w in self.contests_list.winfo_children():
+            w.destroy()
+        if not up:
+            tk.Label(self.contests_list, text="Couldn't load contests (offline?).",
+                     bg=CARD, fg=MUTED, font=(FONT, 11)).pack(anchor="w")
+        for c in up[:12]:
+            row = tk.Frame(self.contests_list, bg=CARD); row.pack(fill="x", pady=3)
+            when = _dt.datetime.fromtimestamp(c["start"]).strftime("%a %d %b · %H:%M") if c.get("start") else "—"
+            dur = f"{round(c.get('duration', 0) / 3600, 1)}h" if c.get("duration") else ""
+            tk.Label(row, text=LABELS.get(c["platform"], c["platform"]),
+                     bg=(OK_BG if c["platform"] == "codeforces" else LOCK_BG), fg=INK,
+                     font=(FONT, 9, "bold"), padx=8, pady=2).pack(side="left")
+            tk.Label(row, text=f"  {c['name']}", bg=CARD, fg=INK, font=(FONT, 11), anchor="w").pack(side="left")
+            op = tk.Label(row, text="open", bg=CARD, fg=ACCENT_DK, font=(FONT, 10, "bold"), cursor="hand2")
+            op.pack(side="right", padx=8)
+            op.bind("<Button-1>", lambda e, u=c["url"]: webbrowser.open(u))
+            tk.Label(row, text=f"{when} · {dur}", bg=CARD, fg=MUTED, font=(FONT, 10)).pack(side="right")
+        self._draw_rating(rating, handle)
+
+    def _draw_rating(self, rating, handle):
+        cv = self.rating_canvas
+        cv.delete("all")
+        if not rating:
+            self.rating_lbl.config(text="Codeforces rating — " +
+                                   ("connect Codeforces to see your curve" if not handle else "no rated contests yet"))
+            return
+        vals = [r for _, r in rating]
+        cur, mx, mn = vals[-1], max(vals), min(vals)
+        self.rating_lbl.config(text=f"@{handle}:   current {cur}   ·   max {mx}   ·   {len(vals)} contests")
+        cv.update_idletasks()
+        W = cv.winfo_width() or 600
+        if W < 50:
+            W = 600
+        H, pad = 120, 14
+        lo, hi = mn - 50, mx + 50
+        rng = (hi - lo) or 1
+        n = len(vals)
+        pts = [(pad + (W - 2 * pad) * (i / max(n - 1, 1)),
+                H - pad - (H - 2 * pad) * ((v - lo) / rng)) for i, v in enumerate(vals)]
+        for i in range(1, len(pts)):
+            cv.create_line(*pts[i - 1], *pts[i], fill=ACCENT, width=2)
+        x, y = pts[-1]
+        cv.create_oval(x - 4, y - 4, x + 4, y + 4, fill=ACCENT_DK, outline="")
+        cv.create_text(x - 6, y - 12, text=str(cur), fill=ACCENT_DK, font=(FONT, 10, "bold"), anchor="e")
 
     # ---------------- status ----------------
     def refresh_status(self):

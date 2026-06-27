@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "GitKosh Sync",
+  "version": "0.1.0",
+  "description": "Auto-push your accepted LeetCode solutions to GitHub in real time. Companion to the GitKosh macOS app.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://leetcode.com/*", "https://api.github.com/*"],
+  "action": { "default_popup": "popup.html", "default_title": "GitKosh Sync" },
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/problems/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    { "resources": ["injected.js"], "matches": ["https://leetcode.com/*"] }
+  ]
+}
