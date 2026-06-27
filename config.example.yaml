@@ -1,0 +1,46 @@
+# ---- codesync configuration ----
+# Copy to config.yaml and edit. config.yaml is git-ignored.
+
+# Local path to the git repo where solutions get written + committed.
+output_repo: ~/competitive-programming
+
+github:
+  # Remote to push to. If create_if_missing is true and the repo doesn't
+  # exist, it is created with `gh` using this name + visibility.
+  repo: harsh-bajpai2615/competitive-programming
+  create_if_missing: true
+  visibility: private          # private | public
+  push: true                   # set false to commit locally without pushing
+
+platforms:
+  leetcode:
+    enabled: true
+    # NeetCode reuses this LeetCode session (NeetCode problems are LeetCode problems).
+  codeforces:
+    enabled: true
+    handle: YOUR_CF_HANDLE
+  codechef:
+    enabled: true
+    handle: YOUR_CC_HANDLE
+  neetcode:
+    enabled: true              # filters LeetCode solves to the NeetCode 150 list
+
+readme:
+  mode: llm                    # llm | scrape | minimal
+  llm:
+    # Provider is pluggable. See README for free options.
+    #   gemini : Google  (free tier)              key: GEMINI_API_KEY
+    #   groq   : Groq    (free tier, very fast)   key: GROQ_API_KEY
+    #   ollama : local   (free, private, no key)  needs Ollama running
+    provider: gemini
+    model: gemini-2.5-flash
+    api_key_env: GEMINI_API_KEY
+    # base_url override is only needed for ollama/groq/openai-compatible:
+    # base_url: http://localhost:11434/v1
+
+watch:
+  interval_minutes: 15
+
+paths:
+  profile_dir: ~/.codesync/browser-profile
+  state_dir: ~/.codesync/state

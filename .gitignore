@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Virtualenvs
+.venv/
+.venv-app/
+
+# Build output (binaries ship via GitHub Releases, not the tree)
+build/
+dist/
+
+# Icon intermediates (AppIcon.icns + icon_1024.png are kept)
+dist_icon/AppIcon.iconset/
+dist_icon/logo_72.png
+
+# Local config / state
+config.yaml
+.codesync/
+.env

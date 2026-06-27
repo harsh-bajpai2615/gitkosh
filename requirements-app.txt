@@ -1,0 +1,8 @@
+# Dependencies to BUILD and RUN the macOS app (no Playwright — native WebKit login).
+requests>=2.31
+beautifulsoup4>=4.12
+html2text>=2024.2.26
+PyYAML>=6.0
+pyobjc-framework-Cocoa>=10.0
+pyobjc-framework-WebKit>=10.0
+py2app>=0.28.10
