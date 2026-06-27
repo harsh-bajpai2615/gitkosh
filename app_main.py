@@ -31,7 +31,22 @@ def main():
         keep = os.environ.get("GITKOSH_KEEP_STREAK") == "1"
         limit = int(os.environ.get("GITKOSH_LIMIT", "0") or "0")
         print(f"[GitKosh] scheduled sync starting (keep_streak={keep}, limit={limit})")
-        run_sync(cfg, STATE_DIR, stop_on_seen=True, limit=limit, keep_streak=keep, log=print)
+        res = run_sync(cfg, STATE_DIR, stop_on_seen=True, limit=limit, keep_streak=keep, log=print)
+        # Daily review reminder (spaced repetition)
+        try:
+            from app import srs, notify
+            from gitkosh.store import Store
+            st = srs.stats(Store(STATE_DIR).all(), STATE_DIR)
+            pushed = res.get("pushed", 0)
+            bits = []
+            if pushed:
+                bits.append(f"Synced {pushed} new solution(s)")
+            if st["due"]:
+                bits.append(f"{st['due']} problem(s) due for review")
+            if bits:
+                notify.notify("GitKosh", " · ".join(bits))
+        except Exception as e:  # noqa: BLE001
+            print(f"[GitKosh] reminder skipped: {e}")
     else:
         from app.gui import main as gui_main
         gui_main()

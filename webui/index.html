@@ -16,6 +16,7 @@
       </div>
       <nav id="nav">
         <button class="nav-item active" data-tab="setup"><span class="ic">⚙</span> Setup &amp; Sync</button>
+        <button class="nav-item" data-tab="practice"><span class="ic">🎯</span> Practice</button>
         <button class="nav-item" data-tab="showcase"><span class="ic">✦</span> Showcase</button>
         <button class="nav-item" data-tab="insights"><span class="ic">📊</span> Insights</button>
         <button class="nav-item" data-tab="contests"><span class="ic">🏆</span> Contests</button>
@@ -117,9 +118,32 @@
           <div class="card-head"><h2>Résumé bullets</h2><button class="btn sm" id="btnCopyResume">Copy</button></div>
           <ul id="resume" class="resume"></ul>
         </div>
+      </section>
+
+      <!-- PRACTICE -->
+      <section class="page" id="page-practice">
+        <header class="hero"><h1>Practice</h1><p>What to do next, your roadmap progress, and spaced-repetition review.</p></header>
+        <div class="grid">
+          <div class="card glow">
+            <div class="card-head"><h2>Today</h2><span class="badge" id="dueBadge">—</span></div>
+            <div id="potd"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Review streak</h2></div>
+            <div class="streakbig"><span class="v" id="revStreak">0</span><span class="l">days reviewing · <b id="revToday">0</b> today</span></div>
+          </div>
+        </div>
         <div class="card">
-          <div class="card-head"><h2>Quiz me</h2><button class="btn sm btn-accent" id="btnQuiz">Show a problem</button></div>
-          <div class="quiz" id="quiz"><div class="quiz-q">Click “Show a problem” to recall one from memory.</div></div>
+          <div class="card-head"><h2>Roadmaps</h2></div>
+          <div id="roadmaps"><div class="muted">Loading…</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Quiz me</h2><span class="muted" id="quizMeta"></span></div>
+          <div class="seg qmodes" id="qmodes">
+            <button data-m="recall" class="on">Recall</button><button data-m="type">Type (AI)</button><button data-m="pattern">Pattern</button>
+          </div>
+          <div id="quizCard" class="quizcard"><div class="muted">Press “Start session” to begin a review.</div></div>
+          <div class="row"><button class="btn btn-accent" id="btnStartQuiz">Start session</button></div>
         </div>
       </section>
 

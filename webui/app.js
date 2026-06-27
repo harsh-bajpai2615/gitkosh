@@ -55,6 +55,7 @@ function switchTab(tab, item) {
   if (tab === "insights") renderInsights();
   if (tab === "contests") renderContests();
   if (tab === "showcase") renderCard();
+  if (tab === "practice") renderPractice();
 }
 $$(".nav-item").forEach((b) => b.addEventListener("click", () => switchTab(b.dataset.tab, b)));
 
@@ -135,7 +136,6 @@ async function renderInsights() {
   });
   $("#topics").innerHTML = (d.topics || []).map((t) => `<span class="chip">${t}</span>`).join("");
   $("#resume").innerHTML = (d.resume || []).map((b) => `<li>${b.replace(/^[-•]\s*/, "")}</li>`).join("");
-  window._quiz = d.quiz || [];
 }
 
 /* ---------- contests ---------- */
@@ -186,13 +186,111 @@ $$("#providerSeg button").forEach((b) => b.addEventListener("click", () => {
   act("set_provider", b.dataset.v); }));
 $("#btnSaveKey").addEventListener("click", () =>
   act("save_ai", curProvider(), $("#apiKey").value).then(() => toast("AI settings saved")));
-$("#btnQuiz").addEventListener("click", () => {
-  const pool = window._quiz || []; if (!pool.length) return;
-  const q = pool[Math.floor(Math.random() * pool.length)];
-  $("#quiz").innerHTML = `<div class="quiz-q">${q.title} · ${q.platform} · ${q.difficulty || ""}</div>
-    <div class="quiz-a" id="quizA">Recall your approach…</div>`;
-  setTimeout(() => { const a = $("#quizA"); if (a) a.textContent = q.approach || "(open the solution)"; }, 1600);
-});
+/* ---------- practice / quiz 2.0 ---------- */
+const TOPICS = ["Array", "Hash Table", "Two Pointers", "Sliding Window", "Stack", "Binary Search",
+  "Linked List", "Tree", "Heap", "Backtracking", "Graph", "Dynamic Programming", "Greedy",
+  "Intervals", "Bit Manipulation", "Math", "Trie", "Sorting", "Recursion", "Matrix", "String", "Queue"];
+const SAMPLE_PRACTICE = {
+  potd: { due: 5, review_streak: 3, next: { title: "Two Sum", slug: "two-sum", sheet: "NeetCode 150", url: "#" },
+          weak: ["Graphs", "Dynamic Programming", "Trie"] },
+  srs: { due: 5, new: 33, reviewed_today: 2, review_streak: 3 },
+  roadmaps: [{ name: "Blind 75", total: 75, done: 9, pct: 12 }, { name: "NeetCode 150", total: 150, done: 14, pct: 9 }],
+  queue: [
+    { key: "x", title: "Maximum Path Score in a Grid", platform: "LeetCode", difficulty: "Hard",
+      tags: ["Dynamic Programming", "Matrix"], approach: "1. DP over grid cells.\n2. Track best incoming path.\n3. Answer at bottom-right.", url: "#" },
+    { key: "y", title: "Count Stable Subarrays", platform: "LeetCode", difficulty: "Medium",
+      tags: ["Array", "Prefix Sum"], approach: "Prefix sums + two pointers.", url: "#" }],
+};
+async function getPractice() { const a = api(); return a ? await a.get_practice() : SAMPLE_PRACTICE; }
+
+let Q = { queue: [], idx: 0, mode: "recall" };
+function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+
+async function renderPractice() {
+  const d = await getPractice(); window._practice = d;
+  const p = d.potd || {};
+  $("#dueBadge").textContent = (p.due || 0) + " due";
+  $("#revStreak").textContent = p.review_streak || 0;
+  $("#revToday").textContent = (d.srs && d.srs.reviewed_today) || 0;
+  let h = "";
+  if (p.due) h += `<div class="big">🔁 ${p.due} problem(s) due for review.</div>
+    <button class="btn btn-accent" id="potdReview" style="margin-top:8px">Start review</button>`;
+  if (p.next) h += `<div class="big" style="margin-top:14px">Next to solve: <a href="${p.next.url}" target="_blank">${p.next.title}</a></div>
+    <div class="muted">from ${p.next.sheet}</div>`;
+  if (p.weak && p.weak.length) h += `<div class="weak">Focus areas: ${p.weak.join(" · ")}</div>`;
+  $("#potd").innerHTML = h || `<div class="muted">All caught up 🎉</div>`;
+  const pr = $("#potdReview"); if (pr) pr.addEventListener("click", startQuiz);
+  $("#roadmaps").innerHTML = (d.roadmaps || []).map((r) =>
+    `<div class="rmrow"><div class="top"><span>${r.name}</span><b>${r.done}/${r.total} · ${r.pct}%</b></div>
+     <div class="bar-bg"><div class="bar-fill" style="width:0"></div></div></div>`).join("");
+  setTimeout(() => $$("#roadmaps .bar-fill").forEach((b, i) => { b.style.width = d.roadmaps[i].pct + "%"; }), 60);
+  $("#quizMeta").textContent = `${(d.srs && d.srs.due) || 0} due · ${(d.srs && d.srs.new) || 0} new`;
+}
+
+function startQuiz() {
+  const d = window._practice || {};
+  Q.queue = (d.queue || []).slice(0, 20); Q.idx = 0;
+  if (!Q.queue.length) { $("#quizCard").innerHTML = `<div class="muted">Nothing due — great job! Cards become reviewable as you solve & sync.</div>`; return; }
+  $("#btnStartQuiz").textContent = "Restart"; showCard();
+}
+function rateRow() {
+  return `<div class="rate"><button class="again" data-r="again">Again</button>
+    <button class="hard" data-r="hard">Hard</button><button class="good" data-r="good">Good</button>
+    <button class="easy" data-r="easy">Easy</button></div>`;
+}
+function bindRate(c) {
+  $$(".rate button").forEach((b) => b.addEventListener("click", async () => {
+    await act("quiz_review", c.key, b.dataset.r); Q.idx++; showCard();
+  }));
+}
+function mcqOptions(correct, tags) {
+  const pool = TOPICS.filter((t) => t !== correct && !tags.includes(t));
+  const picks = [];
+  while (picks.length < 3 && pool.length) picks.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  const opts = [correct, ...picks];
+  for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+  return opts;
+}
+function showCard() {
+  const card = $("#quizCard");
+  if (Q.idx >= Q.queue.length) {
+    card.innerHTML = `<div class="qtitle">Session complete 🎉</div><div class="muted">${Q.queue.length} card(s) reviewed.</div>`;
+    renderPractice(); $("#btnStartQuiz").textContent = "Start session"; return;
+  }
+  const c = Q.queue[Q.idx];
+  const prog = `<div class="sessbar"><i style="width:${100 * Q.idx / Q.queue.length}%"></i></div>`;
+  const head = `<div class="qtitle">${esc(c.title)}</div><div class="qmeta">${c.platform} · ${c.difficulty || ""} · ${(c.tags || []).slice(0, 3).join(", ")}</div>`;
+  if (Q.mode === "recall") {
+    card.innerHTML = prog + head + `<button class="btn" id="revealBtn">Reveal approach</button><div id="revealArea"></div>`;
+    $("#revealBtn").addEventListener("click", () => {
+      $("#revealArea").innerHTML = `<div class="reveal">${esc(c.approach) || "(no approach stored)"}</div>` + rateRow(); bindRate(c);
+    });
+  } else if (Q.mode === "type") {
+    card.innerHTML = prog + head + `<textarea id="ans" rows="3" placeholder="Type your approach from memory…"></textarea>
+      <button class="btn btn-accent" id="gradeBtn" style="margin-top:10px">Grade with AI</button><div id="revealArea"></div>`;
+    $("#gradeBtn").addEventListener("click", async () => {
+      $("#gradeBtn").textContent = "Grading…";
+      const fb = await act("grade_answer", c.key, $("#ans").value);
+      $("#revealArea").innerHTML = `<div class="feedback">${esc(fb || "")}</div><div class="reveal">${esc(c.approach)}</div>` + rateRow(); bindRate(c);
+    });
+  } else {
+    const correct = (c.tags && c.tags[0]) || "Array";
+    const opts = mcqOptions(correct, c.tags || []);
+    card.innerHTML = prog + head + `<div class="muted">Which topic/pattern fits?</div>
+      <div class="mcq" id="mcq">${opts.map((o) => `<button data-o="${o}">${o}</button>`).join("")}</div><div id="revealArea"></div>`;
+    $$("#mcq button").forEach((b) => b.addEventListener("click", () => {
+      $$("#mcq button").forEach((x) => { x.style.pointerEvents = "none";
+        if (x.dataset.o === correct) x.classList.add("correct"); else if (x === b) x.classList.add("wrong"); });
+      $("#revealArea").innerHTML = `<div class="reveal">${esc(c.approach)}</div>` + rateRow(); bindRate(c);
+    }));
+  }
+}
+$("#btnStartQuiz").addEventListener("click", startQuiz);
+$$("#qmodes button").forEach((b) => b.addEventListener("click", () => {
+  $$("#qmodes button").forEach((x) => x.classList.toggle("on", x === b));
+  Q.mode = b.dataset.m;
+  if (Q.queue.length && Q.idx < Q.queue.length) showCard();
+}));
 
 function showProg() { $("#progWrap").classList.remove("hidden"); window.gkProgress("Working…", 8); }
 // called from Python via evaluate_js

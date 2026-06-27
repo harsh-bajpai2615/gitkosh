@@ -141,6 +141,14 @@ Run the preview:
 .venv-app/bin/python -m app.webmain
 ```
 
+It also adds a **Practice** tab — a daily-use study system:
+
+- **Spaced-repetition Quiz Me** (SM-2): rate *Again / Hard / Good / Easy*; only due cards resurface; review-streak tracking.
+- **Three quiz modes:** Recall, **Type → AI-graded** recall, and **Pattern** (multiple-choice topic guess).
+- **Problem of the Day** — what to review or solve next, plus your weakest topics.
+- **Roadmaps** — live **Blind 75** & **NeetCode 150** progress from your solves.
+- The scheduled daily run also sends a **macOS reminder** when reviews are due.
+
 It's a working prototype (real data via a JS↔Python bridge); bundling it as the default app is the
 next step. `webui/index.html` also opens directly in a browser with sample data.
 

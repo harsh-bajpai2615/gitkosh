@@ -142,6 +142,38 @@ textarea{width:100%;margin-top:12px;background:rgba(0,0,0,.25);border:1px solid 
   stroke-dasharray:2000;stroke-dashoffset:2000;animation:draw 1.6s ease forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
 
+/* practice */
+.streakbig{display:flex;align-items:baseline;gap:10px}
+.streakbig .v{font-size:40px;font-weight:800;background:linear-gradient(135deg,#fff,#c9bcff);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.streakbig .l{color:var(--mut);font-size:13px}
+#potd .big{font-size:15px;font-weight:700;margin-bottom:6px}
+#potd a{color:#b9a9ff;text-decoration:none;font-weight:700}
+#potd .weak{margin-top:10px;color:var(--mut);font-size:12.5px}
+.rmrow{margin:14px 0}
+.rmrow .top{display:flex;justify-content:space-between;font-weight:600;font-size:13px;margin-bottom:6px}
+.rmrow .top b{color:var(--mut);font-weight:600}
+.qmodes{margin-bottom:14px}
+.quizcard{min-height:120px;background:rgba(0,0,0,.22);border:1px solid var(--card-bd);border-radius:14px;
+  padding:18px;margin-bottom:14px;transition:.3s}
+.quizcard .qtitle{font-size:18px;font-weight:800;margin-bottom:4px}
+.quizcard .qmeta{color:var(--mut);font-size:13px;margin-bottom:12px}
+.quizcard .reveal{white-space:pre-wrap;color:#d7dcec;border-top:1px solid var(--card-bd);padding-top:12px;margin-top:10px;animation:fade .35s}
+.rate{display:flex;gap:8px;margin-top:14px}
+.rate button{flex:1;border:0;border-radius:10px;padding:10px;font-weight:700;cursor:pointer;color:#fff;transition:transform .12s,filter .2s}
+.rate button:hover{transform:translateY(-2px);filter:brightness(1.12)}
+.rate .again{background:#fb7185}.rate .hard{background:#fbbf24;color:#3a2a00}.rate .good{background:#5b8cff}.rate .easy{background:#34d399;color:#053b27}
+.mcq{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.mcq button{padding:12px;border-radius:10px;border:1px solid var(--card-bd);background:rgba(255,255,255,.04);
+  color:var(--ink);font:600 13px inherit;cursor:pointer;transition:.18s;text-align:left}
+.mcq button:hover{border-color:var(--acc)}
+.mcq button.correct{background:rgba(52,211,153,.2);border-color:var(--easy)}
+.mcq button.wrong{background:rgba(251,113,133,.18);border-color:var(--bad)}
+.feedback{margin-top:12px;padding:12px;border-radius:10px;background:rgba(124,92,252,.12);
+  border:1px solid rgba(124,92,252,.3);white-space:pre-wrap;font-size:13px;animation:fade .35s}
+.sessbar{height:4px;background:rgba(255,255,255,.08);border-radius:4px;margin-bottom:14px;overflow:hidden}
+.sessbar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .4s}
+
 /* toast */
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);
   background:rgba(20,22,32,.92);border:1px solid var(--card-bd);color:#fff;padding:12px 20px;border-radius:12px;

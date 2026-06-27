@@ -16,7 +16,7 @@ import threading
 
 import webview
 
-from . import constants, github_auth, posts, site
+from . import coach, constants, github_auth, posts, roadmap, site, srs
 from .appsupport import STATE_DIR, load_config, save_config
 from .cards import render_png
 from .contests import cf_rating, upcoming as cf_upcoming
@@ -189,6 +189,38 @@ class Api:
     def generate_post(self):
         return posts.generate(_items(), rg=ReadmeGenerator(load_config()["readme"]), days=7,
                               username=(github_auth.load_github(STATE_DIR) or {}).get("login", ""))
+
+    # ---- practice (quiz + coach + roadmaps) ----
+    def get_practice(self):
+        items = _items()
+        return {
+            "potd": coach.potd(items, STATE_DIR),
+            "roadmaps": roadmap.progress(items),
+            "srs": srs.stats(items, STATE_DIR),
+            "queue": [{"key": srs.card_key(it), "title": it.get("title", ""),
+                       "platform": LABELS.get(it.get("platform"), it.get("platform")),
+                       "difficulty": it.get("difficulty", ""), "tags": it.get("tags") or [],
+                       "approach": it.get("approach", ""), "url": it.get("url", "")}
+                      for it in srs.due(items, STATE_DIR)[:40]],
+        }
+
+    def quiz_review(self, key, rating):
+        srs.review(STATE_DIR, key, rating)
+        return srs.stats(_items(), STATE_DIR)
+
+    def grade_answer(self, key, answer):
+        appr = ""
+        for it in _items():
+            if srs.card_key(it) == key:
+                appr = it.get("approach", "")
+                break
+        if not appr:
+            return "No reference approach is stored for this problem — re-sync with an AI provider on."
+        out = ReadmeGenerator(load_config()["readme"]).freeform(
+            "You are a coding-interview coach. Grade my recalled approach against the reference. "
+            "Reply in 3 short lines: a verdict (✅ solid / ⚠️ partial / ❌ off), what I got right, "
+            "and what I missed.\n\nReference:\n" + appr + "\n\nMy answer:\n" + answer)
+        return out or "Couldn't grade — no AI provider configured (pick Ollama/Gemini in Setup)."
 
 
 def main():
