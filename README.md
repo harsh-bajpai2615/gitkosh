@@ -34,6 +34,9 @@ GitKosh is a tiny macOS app that turns your scattered competitive-programming so
 - **Auto-generated dashboard.** Your repo's front page becomes a living portfolio: totals, solving streak, difficulty/language/topic breakdowns, and an index of every problem.
 - **Real-date commits.** Each solution is committed on the day you *actually solved it*, so your GitHub contribution graph reflects your true history — not one giant dump dated today.
 - **Interview-prep exports.** A *Browse by topic* (patterns) view in the dashboard, plus a `study/` folder: **Anki** cards, a **Notion** CSV, and a spaced-repetition **“revise these”** list — auto-generated from your solves.
+- **Shareable stats card.** An auto-updating image — solved count, streak, difficulty split, top topics — to embed in your GitHub **profile** README (one-click *Copy embed code*).
+- **One-click portfolio site.** Publish a searchable, themed **GitHub Pages** site of your solves straight from the app.
+- **Progress posts.** Generate dev.to / LinkedIn / X drafts from your recent solves — a built-in personal-brand engine.
 - **Reset & re-backfill.** One click rebuilds the whole repo as a clean, backdated history that mirrors your real solving timeline.
 - **Bring-your-own AI — including free & local.** Google Gemini, Groq, or **one-click local Ollama** (no key, no limits, fully private).
 - **Daily auto-sync.** A background scheduler runs even when the app is closed — no reminders, no clicking.
@@ -41,6 +44,12 @@ GitKosh is a tiny macOS app that turns your scattered competitive-programming so
 - **In-app auto-update.** New versions install themselves with one click.
 - **Nothing to install on your Mac.** No `git`, no terminal, no Python — it talks to GitHub over the API and ships its own runtime.
 - **Live progress.** A real progress bar: *Fetching → Writing READMEs i/N → Pushing → Done.*
+
+## ✨ Showcase tab
+
+<div align="center"><img src="docs/showcase.png" width="540" alt="GitKosh Showcase tab" /></div>
+
+A live stats card, a one-click portfolio website, and shareable progress posts — all generated from your own solves, right inside the app.
 
 ## 📥 Install
 

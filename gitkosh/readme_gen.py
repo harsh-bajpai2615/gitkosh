@@ -176,6 +176,20 @@ class ReadmeGenerator:
                 msg = "invalid API key (Gemini keys start with 'AIza' — get one at aistudio.google.com/apikey)"
             return False, msg
 
+    def freeform(self, prompt: str) -> str:
+        """Run an arbitrary prompt through the configured provider (for social posts).
+        Returns '' if no working LLM is configured."""
+        if self.mode != "llm":
+            return ""
+        fn = _PROVIDERS.get(self.provider)
+        if not fn:
+            return ""
+        try:
+            return (fn(prompt, self.model, self.api_key, self.base_url) or "").strip()
+        except Exception as e:  # noqa: BLE001
+            print(f"  ! freeform LLM failed ({self.provider}): {e}")
+            return ""
+
     def generate(self, sub: "Submission") -> str:
         out = None
         if self.mode == "llm":

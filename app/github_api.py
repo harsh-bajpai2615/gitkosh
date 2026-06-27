@@ -94,12 +94,25 @@ class GitHubAPI:
         r = self.s.put(f"{API}/repos/{owner}/{repo}/contents/README.md", json=body, timeout=30)
         r.raise_for_status()
 
-    def _blob(self, owner, repo, content: str) -> str:
-        b64 = base64.b64encode(content.encode("utf-8")).decode("ascii")
+    def _blob(self, owner, repo, content) -> str:
+        raw = content if isinstance(content, (bytes, bytearray)) else str(content).encode("utf-8")
+        b64 = base64.b64encode(raw).decode("ascii")
         r = self.s.post(f"{API}/repos/{owner}/{repo}/git/blobs",
                         json={"content": b64, "encoding": "base64"}, timeout=60)
         r.raise_for_status()
         return r.json()["sha"]
+
+    def enable_pages(self, path: str = "/docs") -> str:
+        """Enable GitHub Pages (branch=main, given path) and return the site URL.
+        Idempotent — returns the URL whether it was just created or already on."""
+        owner, repo = self._resolve()
+        self.s.post(f"{API}/repos/{owner}/{repo}/pages",
+                    json={"source": {"branch": self.branch, "path": path}}, timeout=30)
+        g = self.s.get(f"{API}/repos/{owner}/{repo}/pages", timeout=30)
+        if g.status_code == 200:
+            return g.json().get("html_url") or f"https://{owner}.github.io/{repo}/"
+        raise RuntimeError("couldn't enable GitHub Pages (token may lack permission). "
+                           "Enable it once under repo Settings → Pages → Branch: main /docs.")
 
     def get_file_text(self, path: str) -> str:
         """Current text of a file on the default branch, or '' if absent."""

@@ -23,6 +23,7 @@ from .dashboard import render as render_dashboard
 from .detect import DETECTORS
 from .github_api import GitHubAPI
 from .native_session import NativeSession
+from .site import render as render_site, badges_md
 from .study import export_files as export_study
 
 
@@ -232,12 +233,23 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
                 })
             result["pushed"], result["url"] = len(done), url
             log(f"✓ Pushed {len(done)} problem(s), dated to the days you solved them. {url}")
-            progress("busy", text="Updating dashboard & study exports…")
+            progress("busy", text="Updating dashboard, study exports & showcase…")
             try:
-                final = {"README.md": render_dashboard(store.all())}
-                final.update(export_study(store.all()))
+                allitems = store.all()
+                owner, repo = gh._resolve()
+                final = {"README.md": render_dashboard(allitems)}
+                final.update(export_study(allitems))
+                final["docs/index.html"] = render_site(allitems, owner, repo)
+                final["docs/.nojekyll"] = ""
+                final["profile/badges.md"] = badges_md(allitems, owner, repo)
+                try:  # Pillow-rendered card (optional — only in the app bundle)
+                    from .cards import render_png
+                    final["profile/stats.png"] = render_png(allitems, username=owner)
+                except Exception as e:  # noqa: BLE001
+                    log(f"  (stats card skipped: {e})")
                 gh.push_commits([{"files": final,
-                                  "message": "GitKosh: update dashboard & study exports", "date": None}])
+                                  "message": "GitKosh: update dashboard, study exports & showcase",
+                                  "date": None}])
             except Exception as e:  # noqa: BLE001
                 log(f"  (dashboard update skipped: {e})")
             progress("done", text=f"✓ Done — pushed {len(done)} problem(s).", ok=True)

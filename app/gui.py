@@ -17,13 +17,15 @@ import webbrowser
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 
+import base64
+
 from gitkosh.readme_gen import ReadmeGenerator
 from gitkosh.store import Store
 from gitkosh.platforms import REGISTRY
 
-from . import constants, github_auth, ollama_setup, scheduler, updater
+from . import constants, github_auth, ollama_setup, scheduler, updater, posts, site
 from .appsupport import STATE_DIR, load_config, save_config
-from .github_api import GitHubAPI
+from .github_api import GitHubAPI, slug_repo
 from .native_session import NativeSession
 from .detect import DETECTORS
 from .sync_core import run_sync, read_last_run
@@ -93,6 +95,9 @@ class App:
         self.worker = None
         self.stop_evt = threading.Event()
         self.pills = {}
+        self._pages_url = ""
+        self._post_short = ""
+        self._card_img = None
 
         root.title("GitKosh")
         root.configure(bg=BG)
@@ -195,6 +200,20 @@ class App:
         self.update_lbl.pack(side="left", padx=12, pady=8)
         ttk.Button(self.update_bar, text="Update now", style="Ghost.TButton",
                    command=self.do_update).pack(side="right", padx=10, pady=6)
+
+        # segmented tabs (Setup & Sync  /  Showcase)
+        nav = tk.Frame(b, bg=BG); nav.pack(fill="x", padx=16, pady=(2, 8))
+        self.tab_btns = {}
+        for key, label in [("main", "⚙  Setup & Sync"), ("show", "✨  Showcase")]:
+            btn = tk.Label(nav, text=label, bg=LOCK_BG, fg=MUTED, font=(FONT, 12, "bold"),
+                           padx=18, pady=8, cursor="hand2")
+            btn.pack(side="left", padx=(0, 8))
+            btn.bind("<Button-1>", lambda e, k=key: self._show_tab(k))
+            self.tab_btns[key] = btn
+
+        self.page_main = tk.Frame(b, bg=BG); self.page_main.pack(fill="x")
+        self.page_show = tk.Frame(b, bg=BG)
+        b = self.page_main
 
         # steps strip
         steps = tk.Frame(b, bg=BG); steps.pack(fill="x", padx=16)
@@ -311,6 +330,179 @@ class App:
         self.log = scrolledtext.ScrolledText(portal, height=9, font=(MONO, 10), bg="#FBFBFE",
                                              fg="#374151", relief="flat", borderwidth=0)
         self.log.pack(fill="both", expand=True, padx=10, pady=(4, 10))
+
+        # showcase page
+        self._build_showcase(self.page_show)
+        self._show_tab("show" if os.environ.get("GITKOSH_TAB") == "show" else "main")
+
+    # ---------------- showcase tab ----------------
+    def _build_showcase(self, parent):
+        intro = self._card(parent)
+        tk.Label(intro, text="✨  Showcase your work", bg=CARD, fg=INK,
+                 font=(FONT, 15, "bold")).pack(anchor="w", padx=14, pady=(12, 2))
+        tk.Label(intro, text="Turn your solves into a shareable stats card, a live portfolio site, "
+                 "and ready-to-post progress updates.", bg=CARD, fg=MUTED, font=(FONT, 11),
+                 wraplength=620, justify="left").pack(anchor="w", padx=14, pady=(0, 12))
+
+        # --- Profile stats card ---
+        ttk.Label(parent, text="PROFILE STATS CARD", style="Section.TLabel").pack(anchor="w", padx=18, pady=(4, 4))
+        c1 = self._card(parent)
+        self.card_preview = tk.Label(c1, text="Preview will appear here.", bg=CARD, fg=MUTED,
+                                     font=(FONT, 11))
+        self.card_preview.pack(padx=14, pady=14)
+        r1 = tk.Frame(c1, bg=CARD); r1.pack(fill="x", padx=14, pady=(0, 12))
+        ttk.Button(r1, text="Refresh preview", style="Ghost.TButton", command=self._refresh_card).pack(side="left")
+        ttk.Button(r1, text="Copy embed code", style="Accent.TButton", command=self._copy_embed).pack(side="left", padx=8)
+        ttk.Button(r1, text="Save PNG…", style="Ghost.TButton", command=self._save_card).pack(side="left")
+        self.card_hint = tk.Label(c1, text="Paste the embed code into your GitHub profile README "
+                                  "(github.com/<you>/<you>). The card auto-updates on every sync.",
+                                  bg=CARD, fg=MUTED, font=(FONT, 10), wraplength=620, justify="left")
+        self.card_hint.pack(anchor="w", padx=14, pady=(0, 12))
+
+        # --- Portfolio website ---
+        ttk.Label(parent, text="PORTFOLIO WEBSITE  (GitHub Pages)", style="Section.TLabel").pack(anchor="w", padx=18, pady=(4, 4))
+        c2 = self._card(parent)
+        r2 = tk.Frame(c2, bg=CARD); r2.pack(fill="x", padx=14, pady=12)
+        self.pages_btn = ttk.Button(r2, text="Publish / update site", style="Accent.TButton", command=self.do_publish_site)
+        self.pages_btn.pack(side="left")
+        self.pages_open = ttk.Button(r2, text="Open site", style="Ghost.TButton", command=self._open_pages, state="disabled")
+        self.pages_open.pack(side="left", padx=8)
+        self.pages_status = tk.Label(c2, text="A self-contained, searchable site built from your solves.",
+                                     bg=CARD, fg=MUTED, font=(FONT, 10), wraplength=620, justify="left")
+        self.pages_status.pack(anchor="w", padx=14, pady=(0, 12))
+
+        # --- Share progress ---
+        ttk.Label(parent, text="SHARE YOUR PROGRESS", style="Section.TLabel").pack(anchor="w", padx=18, pady=(4, 4))
+        c3 = self._card(parent)
+        r3 = tk.Frame(c3, bg=CARD); r3.pack(fill="x", padx=14, pady=(12, 6))
+        ttk.Button(r3, text="Generate post", style="Accent.TButton", command=self.do_generate_post).pack(side="left")
+        ttk.Button(r3, text="Copy post", style="Ghost.TButton", command=lambda: self._copy_text(self.post_box.get("1.0", "end"))).pack(side="left", padx=8)
+        ttk.Button(r3, text="Copy tweet", style="Ghost.TButton", command=lambda: self._copy_text(self._post_short)).pack(side="left")
+        self.post_box = scrolledtext.ScrolledText(c3, height=8, font=(FONT, 11), bg="#FBFBFE",
+                                                  fg="#374151", relief="flat", borderwidth=0, wrap="word")
+        self.post_box.pack(fill="both", expand=True, padx=12, pady=(4, 12))
+        self.post_box.insert("1.0", "Click “Generate post” to draft a dev.to / LinkedIn / X update "
+                             "from your recent solves (uses your AI provider when available).")
+
+    def _show_tab(self, key):
+        self.page_main.pack_forget()
+        self.page_show.pack_forget()
+        (self.page_main if key == "main" else self.page_show).pack(fill="x")
+        for k, btn in self.tab_btns.items():
+            on = k == key
+            btn.config(bg=ACCENT if on else LOCK_BG, fg="#FFFFFF" if on else MUTED)
+        if key == "show" and self._card_img is None:
+            self._refresh_card()
+        self.root.after(50, lambda: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+    def _store_items(self):
+        try:
+            return Store(STATE_DIR).all()
+        except Exception:  # noqa: BLE001
+            return []
+
+    def _owner_repo(self):
+        owner = (github_auth.load_github(STATE_DIR) or {}).get("login", "")
+        return owner, slug_repo(self.repo_var.get())
+
+    def _refresh_card(self):
+        try:
+            from .cards import render_png
+            owner, _ = self._owner_repo()
+            png = render_png(self._store_items(), username=owner or "your profile")
+            self._card_img = tk.PhotoImage(data=base64.b64encode(png).decode("ascii")).subsample(2)
+            self.card_preview.config(image=self._card_img, text="")
+        except Exception as e:  # noqa: BLE001
+            self.card_preview.config(text=f"(preview unavailable: {e})", image="")
+
+    def _copy_text(self, text):
+        self.root.clipboard_clear()
+        self.root.clipboard_append((text or "").strip())
+
+    def _copy_embed(self):
+        owner, repo = self._owner_repo()
+        md = site.badges_md(self._store_items(), owner, repo, self._pages_url)
+        self._copy_text(md)
+        self.card_hint.config(text="✓ Copied! Paste it into your profile README at github.com/"
+                              f"{owner}/{owner}.", fg=OK_FG)
+        self.root.after(4000, lambda: self.card_hint.config(fg=MUTED))
+
+    def _save_card(self):
+        try:
+            from tkinter import filedialog
+            from .cards import render_png
+            path = filedialog.asksaveasfilename(defaultextension=".png", initialfile="gitkosh-stats.png")
+            if path:
+                owner, _ = self._owner_repo()
+                with open(path, "wb") as f:
+                    f.write(render_png(self._store_items(), username=owner or "your profile"))
+        except Exception as e:  # noqa: BLE001
+            messagebox.showerror("Save failed", str(e))
+
+    def _open_pages(self):
+        if self._pages_url:
+            webbrowser.open(self._pages_url)
+
+    def do_publish_site(self):
+        if self.worker and self.worker.is_alive():
+            return
+        if not github_auth.load_github(STATE_DIR):
+            messagebox.showinfo("Connect GitHub", "Connect GitHub first (Setup & Sync tab).")
+            return
+        self.save_settings()
+        self.pages_btn.config(state="disabled")
+        self.pages_status.config(text="Publishing… building site, pushing, enabling GitHub Pages.", fg=INK)
+        self.worker = threading.Thread(target=self._run_publish, daemon=True)
+        self.worker.start()
+
+    def _run_publish(self):
+        try:
+            items = self._store_items()
+            gh = GitHubAPI(github_auth.load_github(STATE_DIR)["token"], self.repo_var.get(),
+                           private=self.private_var.get())
+            gh.ensure_repo()
+            owner, repo = gh._resolve()
+            files = {"docs/index.html": site.render(items, owner, repo), "docs/.nojekyll": "",
+                     "profile/badges.md": site.badges_md(items, owner, repo)}
+            try:
+                from .cards import render_png
+                files["profile/stats.png"] = render_png(items, username=owner)
+            except Exception:  # noqa: BLE001
+                pass
+            gh.push_commits([{"files": files, "message": "GitKosh: publish portfolio site", "date": None}])
+            url = gh.enable_pages("/docs")
+            self._pages_url = url
+
+            def done():
+                self.pages_status.config(text=f"✓ Live at {url}  (first build can take ~1 min)", fg=OK_FG)
+                self.pages_open.config(state="normal")
+                self.pages_btn.config(state="normal")
+            self.root.after(0, done)
+        except Exception as e:  # noqa: BLE001
+            self.root.after(0, lambda: (self.pages_status.config(text=f"Couldn't publish: {e}", fg=NO_FG),
+                                        self.pages_btn.config(state="normal")))
+
+    def do_generate_post(self):
+        if self.worker and self.worker.is_alive():
+            return
+        self.post_box.delete("1.0", "end")
+        self.post_box.insert("1.0", "Generating…")
+        self.worker = threading.Thread(target=self._run_post, daemon=True)
+        self.worker.start()
+
+    def _run_post(self):
+        try:
+            owner, _ = self._owner_repo()
+            rg = ReadmeGenerator(self.cfg["readme"])
+            res = posts.generate(self._store_items(), rg=rg, days=7, username=owner)
+        except Exception as e:  # noqa: BLE001
+            res = {"post": f"(couldn't generate: {e})", "short": ""}
+
+        def show():
+            self._post_short = res.get("short", "")
+            self.post_box.delete("1.0", "end")
+            self.post_box.insert("1.0", res.get("post", ""))
+        self.root.after(0, show)
 
     # ---------------- status ----------------
     def refresh_status(self):
