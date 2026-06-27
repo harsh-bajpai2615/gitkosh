@@ -34,4 +34,44 @@ def detect_codechef(session) -> str:
     return ""
 
 
-DETECTORS = {"codeforces": detect_codeforces, "codechef": detect_codechef}
+def detect_atcoder(session) -> str:
+    try:
+        s = session.requests_session("atcoder.jp")
+        html = s.get("https://atcoder.jp/", timeout=30).text
+        import re
+        m = re.search(r'userScreenName\s*=\s*"([^"]+)"', html)
+        if m:
+            return m.group(1)
+        soup = BeautifulSoup(html, "html.parser")
+        a = soup.select_one('a[href^="/users/"]')
+        if a:
+            return a["href"].rstrip("/").rsplit("/", 1)[-1]
+    except Exception:  # noqa: BLE001
+        pass
+    return ""
+
+
+def detect_geeksforgeeks(session) -> str:
+    try:
+        s = session.requests_session("geeksforgeeks.org")
+        # GFG stores the handle in a cookie on most logged-in sessions.
+        for n in ("gfguserName", "user_name", "userName"):
+            v = session.cookie(n, "geeksforgeeks.org")
+            if v:
+                return v
+        import re
+        html = s.get("https://www.geeksforgeeks.org/", timeout=30).text
+        m = re.search(r'"user_name"\s*:\s*"([^"]+)"', html) or re.search(r'/user/([^/"]+)/', html)
+        if m:
+            return m.group(1)
+    except Exception:  # noqa: BLE001
+        pass
+    return ""
+
+
+DETECTORS = {
+    "codeforces": detect_codeforces,
+    "codechef": detect_codechef,
+    "atcoder": detect_atcoder,
+    "geeksforgeeks": detect_geeksforgeeks,
+}

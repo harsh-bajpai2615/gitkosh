@@ -4,7 +4,7 @@
 
 # GitKosh
 
-**Automatically sync your competitive-programming solutions from LeetCode, Codeforces, CodeChef & NeetCode to GitHub — each with an AI-written explanation, on a daily schedule that even keeps your contribution streak alive.**
+**Automatically sync your competitive-programming solutions from LeetCode, Codeforces, CodeChef, NeetCode, AtCoder & GeeksforGeeks to GitHub — each with an AI-written explanation, on a daily schedule that even keeps your contribution streak alive.**
 
 ![platform](https://img.shields.io/badge/platform-macOS%2012%2B-000?logo=apple)
 ![python](https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white)
@@ -29,7 +29,7 @@ GitKosh is a tiny macOS app that turns your scattered competitive-programming so
 
 ## ✨ Features
 
-- **5 logins — that's the whole UI.** LeetCode, Codeforces, CodeChef, NeetCode + GitHub. A guided 3-step flow makes the order obvious.
+- **5 logins — that's the whole UI.** LeetCode, Codeforces, CodeChef, NeetCode, AtCoder, GeeksforGeeks + GitHub. A guided 3-step flow makes the order obvious.
 - **AI write-ups for every problem.** Problem summary → **numbered algorithm of your actual code** → time/space complexity → key insight, in clean Markdown.
 - **Auto-generated dashboard.** Your repo's front page becomes a living portfolio: totals, solving streak, difficulty/language/topic breakdowns, and an index of every problem.
 - **Real-date commits.** Each solution is committed on the day you *actually solved it*, so your GitHub contribution graph reflects your true history — not one giant dump dated today.
@@ -113,7 +113,7 @@ Cut a release that installed copies will auto-update to:
 
 ```
 app/            macOS app — GUI, WebKit login, sync core, scheduler, updater, Ollama setup
-gitkosh/       platform extractors, README generator, GitHub helpers
+codesync/       platform extractors, README generator, GitHub helpers
 setup.py        py2app bundle config           build_app.sh   build .app + .dmg
 release.sh      build + publish a release       tools/         app-icon generator
 ```
@@ -123,8 +123,10 @@ release.sh      build + publish a release       tools/         app-icon generato
 - **macOS only** (uses native WebKit + LaunchAgents).
 - **Not notarized yet** — first launch needs right-click→Open; updates after that are seamless.
 - **CodeChef** is best-effort (Cloudflare, no public API).
+- **AtCoder** pulls AC submissions via the kenkoooo API + scrapes each submission's source.
+- **GeeksforGeeks** is **index-only** (titles + links + difficulty) — GFG exposes no submitted source code, so there are no `solution.*` files for it.
 - Free **Gemini** has a low daily cap — use **Ollama** (local) or **Groq** for large backfills.
-- Your data (logins, settings, history) lives in `~/Library/Application Support/gitkosh/` and survives updates.
+- Your data (logins, settings, history) lives in `~/Library/Application Support/GitKosh/` and survives updates.
 
 ## License
 

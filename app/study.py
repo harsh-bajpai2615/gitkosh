@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 
 
 def _date(ts):
+    if not ts:
+        return None
     try:
         return datetime.fromtimestamp(int(ts), tz=timezone.utc).date()
     except Exception:  # noqa: BLE001

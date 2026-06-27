@@ -33,11 +33,13 @@ try:
 except Exception:  # noqa: BLE001
     LOGO_PNG_B64 = ""
 
-CP = ["leetcode", "codeforces", "codechef", "neetcode"]
+CP = ["leetcode", "codeforces", "codechef", "neetcode", "atcoder", "geeksforgeeks"]
 DOMAINS = {"leetcode": "leetcode.com", "codeforces": "codeforces.com",
-           "codechef": "codechef.com", "neetcode": "neetcode.io"}
+           "codechef": "codechef.com", "neetcode": "neetcode.io",
+           "atcoder": "atcoder.jp", "geeksforgeeks": "geeksforgeeks.org"}
 LABELS = {"leetcode": "LeetCode", "codeforces": "Codeforces",
-          "codechef": "CodeChef", "neetcode": "NeetCode"}
+          "codechef": "CodeChef", "neetcode": "NeetCode",
+          "atcoder": "AtCoder", "geeksforgeeks": "GeeksforGeeks"}
 PROVIDERS = ["gemini", "groq", "ollama", "none"]
 PROVIDER_MODEL = {"gemini": "gemini-2.5-flash", "groq": "llama-3.3-70b-versatile",
                   "ollama": "llama3.1", "none": ""}

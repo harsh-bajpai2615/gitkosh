@@ -26,6 +26,8 @@ LOGIN_URLS = {
     "codeforces": "https://codeforces.com/enter",
     "codechef": "https://www.codechef.com/login",
     "neetcode": "https://neetcode.io/",
+    "atcoder": "https://atcoder.jp/login",
+    "geeksforgeeks": "https://www.geeksforgeeks.org/",
 }
 
 # Window style mask: titled | closable | resizable | miniaturizable = 1|2|4|8

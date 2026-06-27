@@ -27,11 +27,28 @@ from .study import export_files as export_study
 
 
 def _iso(ts):
-    """Epoch seconds -> ISO-8601 UTC, for backdating commits to the real solve day."""
+    """Epoch seconds -> ISO-8601 UTC, for backdating commits. None when unknown (0)."""
+    if not ts:
+        return None
     try:
         return datetime.fromtimestamp(int(ts), tz=timezone.utc).isoformat()
     except Exception:  # noqa: BLE001
         return None
+
+
+def _index_readme(sub) -> str:
+    """README for index-only entries (e.g. GeeksforGeeks) — no source code exists."""
+    parts = [f"# {sub.title}", "", f"- **Platform:** {sub.platform}", f"- **Link:** {sub.url}"]
+    if sub.difficulty:
+        parts.append(f"- **Difficulty:** {sub.difficulty}")
+    if sub.tags:
+        parts.append(f"- **Tags:** {', '.join(sub.tags)}")
+    if sub.statement:
+        parts += ["", "## Problem", "", sub.statement]
+    parts += ["", "_Solved on this platform. (Source code isn't exposed by the platform, "
+              "so this is an index entry.)_",
+              "", "<sub>synced by [GitKosh](https://github.com/harsh-bajpai2615/gitkosh)</sub>"]
+    return "\n".join(parts) + "\n"
 
 
 def _approach(md: str) -> str:
@@ -43,11 +60,13 @@ def _approach(md: str) -> str:
             parts.append(m.group(1).strip())
     return "\n".join(parts).strip()[:1500]
 
-CP = ["leetcode", "codeforces", "codechef", "neetcode"]
+CP = ["leetcode", "codeforces", "codechef", "neetcode", "atcoder", "geeksforgeeks"]
 DOMAINS = {"leetcode": "leetcode.com", "codeforces": "codeforces.com",
-           "codechef": "codechef.com", "neetcode": "neetcode.io"}
+           "codechef": "codechef.com", "neetcode": "neetcode.io",
+           "atcoder": "atcoder.jp", "geeksforgeeks": "geeksforgeeks.org"}
 LABELS = {"leetcode": "LeetCode", "codeforces": "Codeforces",
-          "codechef": "CodeChef", "neetcode": "NeetCode"}
+          "codechef": "CodeChef", "neetcode": "NeetCode",
+          "atcoder": "AtCoder", "geeksforgeeks": "GeeksforGeeks"}
 
 
 def connected_platforms(state_dir) -> dict:
@@ -159,7 +178,7 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
             for sub in it:
                 if should_stop():
                     break
-                if not sub.code.strip():
+                if not sub.code.strip() and not sub.extra.get("list_only"):
                     continue
                 if store.seen(sub.key):
                     if stop_on_seen:
@@ -186,10 +205,15 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
             progress("step", i=i, n=total, text="Writing READMEs",
                      sub=f"{LABELS.get(name, name)}: {sub.title}")
             base = f"{name}/{sub.dirname}"
-            readme = rg.generate(sub)
+            if sub.code.strip():
+                readme = rg.generate(sub)
+                files = {f"{base}/solution.{sub.ext}": sub.code, f"{base}/README.md": readme}
+            else:  # index-only entry (e.g. GeeksforGeeks — no source available)
+                readme = _index_readme(sub)
+                files = {f"{base}/README.md": readme}
             commits.append({
-                "files": {f"{base}/solution.{sub.ext}": sub.code, f"{base}/README.md": readme},
-                "message": f"{LABELS.get(name, name)}: {sub.title} ({sub.lang})",
+                "files": files,
+                "message": f"{LABELS.get(name, name)}: {sub.title}" + (f" ({sub.lang})" if sub.lang else ""),
                 "date": _iso(sub.timestamp),
             })
             done.append((name, sub, readme))

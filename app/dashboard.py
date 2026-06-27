@@ -10,10 +10,13 @@ from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 
 LABELS = {"leetcode": "LeetCode", "codeforces": "Codeforces",
-          "codechef": "CodeChef", "neetcode": "NeetCode"}
+          "codechef": "CodeChef", "neetcode": "NeetCode",
+          "atcoder": "AtCoder", "geeksforgeeks": "GeeksforGeeks"}
 
 
 def _d(ts):
+    if not ts:
+        return None
     try:
         return datetime.fromtimestamp(int(ts), tz=timezone.utc).date()
     except Exception:  # noqa: BLE001
