@@ -196,6 +196,27 @@ textarea{width:100%;margin-top:12px;background:rgba(0,0,0,.25);border:1px solid 
 .runout{margin-top:12px;background:#0a0c12;border:1px solid var(--card-bd);border-radius:12px;padding:14px;
   color:#cdd3e6;font:12.5px/1.55 "SF Mono",Menlo,monospace;white-space:pre-wrap;min-height:42px;max-height:260px;overflow:auto}
 
+/* achievements */
+.xptop{display:flex;justify-content:space-between;font-weight:600;font-size:13px;margin-bottom:6px}
+.badges{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:760px){.badges{grid-template-columns:1fr}}
+.bdg{display:flex;gap:11px;align-items:center;padding:10px 12px;border-radius:12px;border:1px solid var(--card-bd);background:rgba(255,255,255,.03)}
+.bdg.earned{border-color:rgba(124,92,252,.5);background:linear-gradient(135deg,rgba(124,92,252,.14),rgba(91,140,255,.05))}
+.bdg.locked{opacity:.45}
+.bdg .ico{width:34px;height:34px;flex:0 0 34px;border-radius:10px;display:grid;place-items:center;font-weight:800;background:rgba(255,255,255,.06);color:var(--mut)}
+.bdg.earned .ico{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.bdg .bn{font-weight:700;font-size:13px}.bdg .bd{color:var(--mut);font-size:11.5px}
+/* pattern library */
+.patterns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:780px){.patterns{grid-template-columns:repeat(2,1fr)}}
+.pat{padding:12px 13px;border-radius:12px;border:1px solid var(--card-bd);background:rgba(255,255,255,.03);cursor:pointer;transition:.18s}
+.pat:hover{border-color:var(--acc);transform:translateY(-2px)}
+.pat .pn{font-weight:700;font-size:13.5px}.pat .pw{color:var(--mut);font-size:11px;margin-top:3px;line-height:1.4}
+.pdetail{margin-top:14px;padding:16px;border-radius:12px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.3);animation:fade .35s}
+.pdetail h3{font-size:15px;margin-bottom:6px}.pdetail .ex{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+/* visualizer */
+.viz{width:100%;height:230px;background:#0a0c12;border:1px solid var(--card-bd);border-radius:12px;display:block}
+
 /* toast */
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);
   background:rgba(20,22,32,.92);border:1px solid var(--card-bd);color:#fff;padding:12px 20px;border-radius:12px;

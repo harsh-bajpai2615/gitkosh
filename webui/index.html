@@ -123,6 +123,12 @@
           <div class="card-head"><h2>Résumé bullets</h2><button class="btn sm" id="btnCopyResume">Copy</button></div>
           <ul id="resume" class="resume"></ul>
         </div>
+        <div class="card">
+          <div class="card-head"><h2>Achievements</h2><span class="badge" id="lvlBadge">Lv 1</span></div>
+          <div class="xptop"><span id="xpLabel">0 XP</span><span class="muted" id="xpNext"></span></div>
+          <div class="bar-bg"><div class="bar-fill" id="xpBar" style="background:linear-gradient(90deg,var(--acc),var(--acc2));width:0"></div></div>
+          <div class="badges" id="badges" style="margin-top:14px"></div>
+        </div>
       </section>
 
       <!-- PRACTICE -->
@@ -165,6 +171,18 @@
             <span class="chip" data-q="Give me a hint for the problem I'm solving.">Hint, please</span>
           </div>
           <div class="chatbar"><input id="chatInput" placeholder="Ask the tutor… e.g. explain Dijkstra"><button class="btn btn-accent" id="chatSend">Send</button></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Pattern library</h2></div>
+          <div class="patterns" id="patterns"></div>
+          <div id="patternDetail" class="pdetail hidden"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Algorithm visualizer</h2>
+            <select id="vizAlgo" class="sel"><option value="bubble">Bubble sort</option><option value="insertion">Insertion sort</option><option value="selection">Selection sort</option><option value="quick">Quick sort</option></select>
+          </div>
+          <canvas id="vizCanvas" class="viz"></canvas>
+          <div class="row" style="margin-top:10px"><button class="btn btn-accent" id="vizPlay">▶ Play</button><button class="btn" id="vizShuffle">Shuffle</button></div>
         </div>
         <div class="card">
           <div class="card-head"><h2>Solve</h2><select id="probSelect" class="sel"></select></div>

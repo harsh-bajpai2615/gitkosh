@@ -137,7 +137,23 @@ async function renderInsights() {
   });
   $("#topics").innerHTML = (d.topics || []).map((t) => `<span class="chip">${t}</span>`).join("");
   $("#resume").innerHTML = (d.resume || []).map((b) => `<li>${b.replace(/^[-•]\s*/, "")}</li>`).join("");
+  const g = api() ? await act("get_gamify") : GAMIFY_SAMPLE;
+  $("#lvlBadge").textContent = "Lv " + g.level;
+  $("#xpLabel").textContent = g.xp + " XP · " + g.earned + "/" + g.total_badges + " badges";
+  $("#xpNext").textContent = g.into + "/" + g.need + " to Lv " + (g.level + 1);
+  setTimeout(() => { $("#xpBar").style.width = g.pct + "%"; }, 60);
+  $("#badges").innerHTML = g.badges.map((b) =>
+    `<div class="bdg ${b.earned ? "earned" : "locked"}"><div class="ico">${b.earned ? "✓" : "·"}</div>
+     <div><div class="bn">${b.name}</div><div class="bd">${b.desc}</div></div></div>`).join("");
 }
+const GAMIFY_SAMPLE = { level: 2, xp: 515, into: 15, need: 500, pct: 3, earned: 4, total_badges: 10,
+  badges: [{ name: "First Steps", desc: "Sync your first solution", earned: true },
+    { name: "Getting Going", desc: "Solve 10 problems", earned: true },
+    { name: "Polyglot", desc: "Use 3+ languages", earned: true },
+    { name: "Centurion", desc: "Solve 100 problems", earned: false }] };
+const PATTERNS_SAMPLE = [
+  { name: "Sliding Window", when: "Contiguous subarray with a constraint.", idea: "Grow right, shrink left.", examples: ["Max Profit", "Min Window Substring"] },
+  { name: "Two Pointers", when: "Sorted array / pairs.", idea: "Move two indices to shrink the space.", examples: ["3Sum", "Valid Palindrome"] }];
 
 /* ---------- contests ---------- */
 async function renderContests() {
@@ -342,6 +358,9 @@ async function renderLearn() {
     $("#runBtn").addEventListener("click", runCode);
     $("#testBtn").addEventListener("click", runTests);
     $("#editor").addEventListener("keydown", editorTab);
+    $("#vizPlay").addEventListener("click", vizPlay);
+    $("#vizShuffle").addEventListener("click", vizInit);
+    vizInit();
   }
   if (!window._learnReal) {  // (re)load once the Python bridge is actually available
     const live = !!api();
@@ -349,10 +368,60 @@ async function renderLearn() {
     $("#probSelect").innerHTML = `<option value="__scratch">Scratchpad (free Python)</option>` +
       (probs || []).map((p) => `<option value="${p.id}">${p.title} · ${p.difficulty}</option>`).join("");
     if (probs && probs.length) $("#probSelect").value = probs[0].id;
+    renderPatterns(live ? await act("get_patterns") : PATTERNS_SAMPLE);
     if (live) window._learnReal = true;
     await loadProblem();
   }
 }
+
+function renderPatterns(pats) {
+  window._pats = pats || [];
+  $("#patterns").innerHTML = window._pats.map((p, i) =>
+    `<div class="pat" data-i="${i}"><div class="pn">${esc(p.name)}</div><div class="pw">${esc(p.when)}</div></div>`).join("");
+  $$("#patterns .pat").forEach((el) => el.addEventListener("click", () => showPattern(+el.dataset.i)));
+}
+function showPattern(i) {
+  const p = window._pats[i]; const d = $("#patternDetail");
+  d.classList.remove("hidden");
+  d.innerHTML = `<h3>${esc(p.name)}</h3><div><b>When:</b> ${esc(p.when)}</div>
+    <div style="margin-top:6px"><b>Idea:</b> ${esc(p.idea)}</div>
+    <div class="ex">${(p.examples || []).map((e) => `<span class="chip">${esc(e)}</span>`).join("")}</div>
+    <div style="margin-top:12px"><button class="btn sm btn-accent" id="askPat">Ask the tutor about this</button></div>`;
+  $("#askPat").addEventListener("click", () => {
+    $("#chat").scrollIntoView({ behavior: "smooth" });
+    sendChat(`Explain the ${p.name} pattern with a simple example and when to use it.`);
+  });
+}
+
+/* sorting visualizer */
+let vizArr = [], vizBusy = false;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function vizInit() {
+  vizArr = Array.from({ length: 46 }, () => 0.08 + Math.random() * 0.9);
+  vizDraw();
+}
+function vizDraw(hi = []) {
+  const c = $("#vizCanvas"); if (!c) return;
+  const W = c.width = c.clientWidth || 800, H = c.height = 230;
+  const ctx = c.getContext("2d"); ctx.clearRect(0, 0, W, H);
+  const n = vizArr.length, bw = W / n;
+  vizArr.forEach((v, i) => {
+    const h = v * (H - 16) + 6;
+    ctx.fillStyle = hi.includes(i) ? "#fbbf24" : "#7c5cfc";
+    ctx.fillRect(i * bw + 1, H - h, Math.max(bw - 2, 1), h);
+  });
+}
+async function vizPlay() {
+  if (vizBusy) return;
+  vizBusy = true; $("#vizPlay").textContent = "Sorting…";
+  const f = { bubble: bubbleSort, insertion: insertionSort, selection: selectionSort, quick: () => quickSort(0, vizArr.length - 1) };
+  await f[$("#vizAlgo").value]();
+  vizDraw(); vizBusy = false; $("#vizPlay").textContent = "▶ Play";
+}
+async function bubbleSort() { const a = vizArr, n = a.length; for (let i = 0; i < n; i++) for (let j = 0; j < n - i - 1; j++) { vizDraw([j, j + 1]); await sleep(6); if (a[j] > a[j + 1]) [a[j], a[j + 1]] = [a[j + 1], a[j]]; } }
+async function insertionSort() { const a = vizArr, n = a.length; for (let i = 1; i < n; i++) { const k = a[i]; let j = i - 1; while (j >= 0 && a[j] > k) { a[j + 1] = a[j]; j--; vizDraw([j + 1, i]); await sleep(9); } a[j + 1] = k; } }
+async function selectionSort() { const a = vizArr, n = a.length; for (let i = 0; i < n; i++) { let m = i; for (let j = i + 1; j < n; j++) { vizDraw([m, j]); await sleep(4); if (a[j] < a[m]) m = j; }[a[i], a[m]] = [a[m], a[i]]; } }
+async function quickSort(lo, hi) { if (lo >= hi) return; const a = vizArr, p = a[hi]; let i = lo; for (let j = lo; j < hi; j++) { vizDraw([j, hi]); await sleep(9); if (a[j] < p) { [a[i], a[j]] = [a[j], a[i]]; i++; } }[a[i], a[hi]] = [a[hi], a[i]]; await quickSort(lo, i - 1); await quickSort(i + 1, hi); }
 async function loadProblem() {
   const pid = $("#probSelect").value;
   $("#runOut").textContent = ""; $("#runStatus").textContent = "";

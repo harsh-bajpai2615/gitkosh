@@ -16,7 +16,8 @@ import threading
 
 import webview
 
-from . import coach, constants, github_auth, posts, problems, roadmap, runner, site, srs
+from . import (coach, constants, gamify, github_auth, patterns, posts, problems,
+               roadmap, runner, site, srs)
 from .appsupport import STATE_DIR, load_config, save_config
 from .cards import render_png
 from .contests import cf_rating, upcoming as cf_upcoming
@@ -218,6 +219,12 @@ class Api:
             "concisely with tiny examples. When asked for a hint, give a nudge — don't dump the full "
             "solution unless explicitly asked. Use Markdown.\n\n" + convo + "\nTutor:")
         return out or "Pick an AI provider in Setup (Ollama is free & local) to chat with the tutor."
+
+    def get_gamify(self):
+        return gamify.compute(_items(), STATE_DIR)
+
+    def get_patterns(self):
+        return patterns.listing()
 
     def list_problems(self):
         return problems.listing()
