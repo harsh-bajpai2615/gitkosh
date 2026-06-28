@@ -400,7 +400,12 @@ const SAMPLE_PRACTICE = {
 async function getPractice() { return _safe((a) => a.get_practice(), SAMPLE_PRACTICE); }
 
 let Q = { queue: [], idx: 0, mode: "recall" };
-function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+// Escapes &<> via textContent AND quotes, so it's safe inside double/single-quoted
+// HTML attributes (the value is interpolated into many attrs across this file).
+function esc(s) {
+  const d = document.createElement("div"); d.textContent = s == null ? "" : String(s);
+  return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
 
 async function renderPractice() {
   const d = await getPractice(); window._practice = d;
@@ -423,7 +428,10 @@ async function renderPractice() {
   $("#quizMeta").textContent = `${(d.srs && d.srs.due) || 0} due · ${(d.srs && d.srs.new) || 0} new`;
 }
 
-function startQuiz() {
+async function startQuiz() {
+  // The launch banner can trigger this before renderPractice() has loaded data —
+  // fetch it on demand rather than racing a timer.
+  if (!window._practice) window._practice = await getPractice();
   const d = window._practice || {};
   Q.queue = (d.queue || []).slice(0, 20); Q.idx = 0;
   if (!Q.queue.length) { $("#quizCard").innerHTML = `<div class="muted">Nothing due — great job! Cards become reviewable as you solve & sync.</div>`; return; }
@@ -672,6 +680,7 @@ const DIFF_CLASS = { Easy: "easy", Medium: "med", Hard: "hard" };
 let _loadSeq = 0;
 async function loadProblem(forceReset) {
   const seq = ++_loadSeq;  // ignore stale responses if the user switches problems fast
+  clearTimeout(_saveTimer);  // drop any pending debounced save for the previous problem
   const pid = $("#probSelect").value;
   $("#runOut").textContent = ""; $("#runStatus").textContent = "";
   $("#reviewOut").classList.add("hidden"); $("#reviewOut").innerHTML = "";
@@ -709,8 +718,11 @@ let _saveTimer = null;
 function saveCodeDebounced() {
   const pid = $("#probSelect").value;
   if (!api() || !pid || pid === "__scratch") return;
+  // Capture pid + value NOW; if the user switches problems before the timer fires,
+  // we must save A's code under A, not under whatever is selected at fire time.
+  const code = $("#editor").value;
   clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => act("save_code", pid, $("#editor").value), 600);
+  _saveTimer = setTimeout(() => act("save_code", pid, code), 600);
 }
 
 /* lightweight Python syntax highlighting (offline, no deps) */
@@ -892,29 +904,35 @@ function buildCompanyOptions(filter) {
   if (CO.slug && [...sel.options].some((o) => o.value === CO.slug)) sel.value = CO.slug;
   else if (q && list.length === 1) selectCompany(list[0].slug);
 }
+let _coSeq = 0;
 function selectCompany(slug) {
   if (!slug) return;
   CO.slug = slug;
+  CO.filter.sort = "freq"; $("#coSort").value = "freq";  // overlap sort only applies to the target sheet
   $("#coSelect").value = slug;
   $$("#coFeatured .co-chip").forEach((b) => b.classList.toggle("on", b.dataset.slug === slug));
   loadCompany();
 }
 async function loadCompany() {
+  const seq = ++_coSeq;
   $("#coResult").classList.remove("hidden");
   $("#coTableWrap").innerHTML = `<div class="muted">Loading questions…</div>`;
   $("#coSummary").innerHTML = ""; $("#coBars").innerHTML = ""; $("#coProgress").textContent = "";
   const r = await act("company_questions", CO.slug, CO.period);
+  if (seq !== _coSeq) return;  // a newer selection superseded this load
   if (!r || !r.ok) { $("#coTableWrap").innerHTML = `<div class="muted">${esc((r && r.error) || "Couldn't load.")}</div>`; return; }
   CO.name = r.name; CO.last = r;
   renderCompanyResult(r);
 }
 async function loadSaved() {
+  const seq = ++_coSeq;
   CO.slug = "__saved";
   $("#coSelect").value = ""; $$("#coFeatured .co-chip").forEach((b) => b.classList.remove("on"));
   $("#coResult").classList.remove("hidden");
   $("#coTableWrap").innerHTML = `<div class="muted">Loading your saved list…</div>`;
   $("#coSummary").innerHTML = ""; $("#coBars").innerHTML = ""; $("#coProgress").textContent = "";
   const r = await act("saved_questions");
+  if (seq !== _coSeq) return;
   if (!r || !r.ok) { $("#coTableWrap").innerHTML = `<div class="muted">Couldn't load saved list.</div>`; return; }
   CO.name = r.name; CO.last = r;
   if (!r.total) { $("#coTableWrap").innerHTML = `<div class="co-empty">No saved questions yet. Tap the ☆ star on any question to build your personal interview-prep list across companies.</div>`;
@@ -949,6 +967,7 @@ async function toggleTarget(slug, forceAdd) {
 }
 async function buildTargets() {
   if (!CO.targets.length) { toast("Add at least one target company."); return; }
+  const seq = ++_coSeq;
   CO.slug = "__targets";
   $("#coSelect").value = ""; $$("#coFeatured .co-chip").forEach((b) => b.classList.remove("on"));
   CO.filter.sort = "companies"; $("#coSort").value = "companies";
@@ -956,6 +975,7 @@ async function buildTargets() {
   $("#coTableWrap").innerHTML = `<div class="muted">Merging ${CO.targets.length} companies…</div>`;
   $("#coSummary").innerHTML = ""; $("#coBars").innerHTML = ""; $("#coProgress").textContent = "";
   const r = await act("target_questions", CO.period);
+  if (seq !== _coSeq) return;
   if (!r || !r.ok) { $("#coTableWrap").innerHTML = `<div class="muted">${esc((r && r.error) || "Couldn't build the sheet.")}</div>`; return; }
   CO.name = r.name; CO.last = r;
   renderCompanyResult(r);
@@ -1016,7 +1036,7 @@ function applyFilters() {
   if (q) list = list.filter((x) => (x.title || "").toLowerCase().includes(q));
   const DORD = { Easy: 0, Medium: 1, Hard: 2 };
   if (f.sort === "diff") list.sort((a, b) => (DORD[a.difficulty] ?? 9) - (DORD[b.difficulty] ?? 9) || (b.frequency || 0) - (a.frequency || 0));
-  else if (f.sort === "acc") list.sort((a, b) => parseFloat(a.acceptance || 0) - parseFloat(b.acceptance || 0));
+  else if (f.sort === "acc") list.sort((a, b) => (parseFloat(a.acceptance) || 0) - (parseFloat(b.acceptance) || 0));
   else if (f.sort === "title") list.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
   else if (f.sort === "companies") list.sort((a, b) => (b.company_count || 0) - (a.company_count || 0) || (b.frequency || 0) - (a.frequency || 0));
   else list.sort((a, b) => (b.frequency || 0) - (a.frequency || 0));
@@ -1081,9 +1101,10 @@ async function coToggleStar(slug) {
     CO.last.total = CO.last.questions.length;
   }
   renderTable();
-  // refresh the "saved" count chip in the summary row
+  // refresh the "saved" count chip (last span in the summary row)
   const savedCount = CO.last.questions.filter((x) => x.bookmarked).length;
-  const chip = $("#coSummary").querySelectorAll("span")[2];
+  const spans = $("#coSummary").querySelectorAll("span");
+  const chip = spans[spans.length - 1];
   if (chip) chip.innerHTML = `<b>${savedCount}</b> saved`;
 }
 function coClearFilters() {
@@ -1391,7 +1412,7 @@ async function reviewNudge() {
     b.classList.add("hidden");
     const nav = $$(".nav-item").find((x) => x.dataset.tab === "practice");
     if (nav) switchTab("practice", nav);
-    setTimeout(startQuiz, 200);
+    startQuiz();  // self-fetches practice data if needed (no timer race)
   };
   $("#reviewBannerX").onclick = () => b.classList.add("hidden");
 }

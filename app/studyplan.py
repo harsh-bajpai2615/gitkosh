@@ -58,10 +58,10 @@ def build(questions, weeks=4, per_day=3, include_solved=False, weights=None, sta
     per_day = max(1, min(int(per_day or 3), 15))
     start = start or _today()
     pool = [q for q in questions if include_solved or not q.get("solved")]
-    if weights:
+    if weights and pool:
         # Blend topic weakness with (normalized) frequency so weak patterns are
         # genuinely emphasized while still-important common problems stay in play.
-        maxf = max((q.get("frequency", 0) or 0) for q in pool) or 1
+        maxf = max((q.get("frequency", 0) or 0 for q in pool), default=1) or 1
         def _score(q):
             w = max((weights.get(t, 0.0) for t in (q.get("topics") or [])), default=0.0)
             fn = (q.get("frequency", 0) or 0) / maxf

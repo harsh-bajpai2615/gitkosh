@@ -92,7 +92,7 @@ def render(items: list, owner: str = "", repo: str = "") -> str:
         f'<button class="chip" data-topic="{_esc(t)}">{_esc(t)} <b>{n}</b></button>'
         for t, n in tags.most_common(24))
 
-    rows = sorted(items, key=lambda i: i.get("timestamp", 0), reverse=True)
+    rows = sorted(items, key=lambda i: i.get("timestamp") or 0, reverse=True)
     rows_html = []
     for i in rows:
         d = i.get("dir")

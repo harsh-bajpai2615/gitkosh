@@ -101,6 +101,8 @@ def _exec(argv, stdin, timeout, cwd=None):
         return _result(p.returncode == 0, p.stdout, p.stderr, round((time.time() - t0) * 1000))
     except subprocess.TimeoutExpired:
         return _result(False, stderr=f"⏱ Time limit exceeded ({timeout}s)", ms=timeout * 1000)
+    except Exception as e:  # noqa: BLE001 — never let a launch failure reach the bridge as null
+        return _result(False, stderr=str(e))
 
 
 def _run_node(code, stdin, timeout):

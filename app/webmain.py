@@ -226,11 +226,18 @@ class Api:
     def get_contests(self):
         handle = (load_config().get("platforms", {}).get("codeforces", {}) or {}).get("handle", "")
         up = []
-        for c in cf_upcoming()[:12]:
-            when = dt.datetime.fromtimestamp(c["start"]).strftime("%a %d %b · %H:%M") if c.get("start") else "—"
-            up.append({"platform": c["platform"], "name": c["name"], "when": when,
-                       "dur": f"{round(c.get('duration', 0) / 3600, 1)}h", "url": c["url"]})
-        return {"handle": handle, "upcoming": up, "rating": [r for _, r in cf_rating(handle)]}
+        try:
+            for c in cf_upcoming()[:12]:
+                when = dt.datetime.fromtimestamp(c["start"]).strftime("%a %d %b · %H:%M") if c.get("start") else "—"
+                up.append({"platform": c.get("platform", ""), "name": c.get("name", "Contest"), "when": when,
+                           "dur": f"{round(c.get('duration', 0) / 3600, 1)}h", "url": c.get("url", "")})
+        except Exception:  # noqa: BLE001 — a malformed/unreachable feed shouldn't blank the tab
+            pass
+        try:
+            rating = [r for _, r in cf_rating(handle)]
+        except Exception:  # noqa: BLE001
+            rating = []
+        return {"handle": handle, "upcoming": up, "rating": rating}
 
     # ---- actions ----
     def set_provider(self, v):
@@ -614,6 +621,8 @@ class Api:
                 m["_freqs"].append(q.get("frequency", 0) or 0)
                 if not m["difficulty"] and q.get("difficulty"):
                     m["difficulty"] = q["difficulty"]
+        if not merged:  # every fetch failed (e.g. offline) — don't look "all solved"
+            return {"ok": False, "error": "Couldn't load your target companies (check your connection)."}
         qs = []
         for m in merged.values():
             m["company_count"] = len(m["companies"])
@@ -675,7 +684,9 @@ class Api:
         cfg = load_config()
         cfg["study_plan"] = plan
         save_config(cfg)
-        return studyplan.decorate(plan, _solved_leetcode_slugs())
+        # decorate() mutates; work on a copy so the stored plan stays free of
+        # time-dependent fields.
+        return studyplan.decorate(json.loads(json.dumps(plan)), _solved_leetcode_slugs())
 
     def get_study_plan(self):
         plan = load_config().get("study_plan")

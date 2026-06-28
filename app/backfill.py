@@ -67,13 +67,22 @@ def _git_file_dates(root: Path) -> dict:
         return out
     if res.returncode != 0:
         return out
+    # Output per commit: a %at timestamp line, then its changed files, then a blank
+    # separator. Track position (the first line after a blank is the timestamp) rather
+    # than guessing by isdigit() — a file literally named "123456789" must not be read
+    # as a timestamp.
     cur_ts = None
+    expect_ts = True
     for line in res.stdout.splitlines():
-        line = line.strip()
-        if not line:
+        if not line.strip():
+            expect_ts = True
             continue
-        if line.isdigit() and len(line) >= 9:  # an author timestamp line
-            cur_ts = int(line)
+        if expect_ts:
+            try:
+                cur_ts = int(line.strip())
+            except ValueError:
+                cur_ts = None
+            expect_ts = False
         elif cur_ts is not None and line not in out:  # newest wins (log is newest-first)
             out[line] = cur_ts
     return out

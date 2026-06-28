@@ -156,6 +156,7 @@ def _stream_openai_compatible(prompt, model, api_key, base_url, on_chunk):
     with requests.post(f"{base_url.rstrip('/')}/chat/completions",
                        headers=headers, json=payload, timeout=180, stream=True) as r:
         r.raise_for_status()
+        r.encoding = "utf-8"  # SSE has no charset; requests would default to latin-1 → mojibake
         for line in r.iter_lines(decode_unicode=True):
             if not line:
                 continue
@@ -181,6 +182,7 @@ def _stream_gemini(prompt, model, api_key, base_url, on_chunk):
                        json={"contents": [{"parts": [{"text": prompt}]}]},
                        timeout=180, stream=True) as r:
         r.raise_for_status()
+        r.encoding = "utf-8"  # SSE has no charset; avoid latin-1 mojibake on multibyte text
         for line in r.iter_lines(decode_unicode=True):
             if not line or not line.startswith("data:"):
                 continue
