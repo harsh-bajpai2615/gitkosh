@@ -894,6 +894,8 @@ function ivQuit() {
 }
 
 /* ---------- company prep ---------- */
+const PERIOD_LABELS = { "thirty-days": "30 days", "three-months": "3 months", "six-months": "6 months", "all": "All time" };
+const periodLabel = (k) => PERIOD_LABELS[k] || String(k || "").replace(/-/g, " ");
 let CO = { init: false, slug: null, period: "all", name: "", companies: [], last: null,
   targets: [], byslug: {}, featured: [],
   filter: { diff: "all", unsolved: false, inapp: false, saved: false, topic: "all", q: "", sort: "freq" } };
@@ -906,9 +908,7 @@ async function renderCompanies() {
   CO.companies = data.companies || [];
   CO.featured = data.featured || [];
   CO.byslug = Object.fromEntries(CO.companies.map((c) => [c.slug, c]));
-  $("#coFeatured").innerHTML = CO.featured.map((s) =>
-    `<button class="co-chip" data-slug="${esc(s)}">${esc((CO.byslug[s] || {}).name || s)}</button>`).join("");
-  $$("#coFeatured .co-chip").forEach((b) => b.addEventListener("click", () => selectCompany(b.dataset.slug)));
+  renderSingleFeatured();
   buildCompanyOptions("");
   $("#coSelect").addEventListener("change", () => selectCompany($("#coSelect").value));
   $("#coSearch").addEventListener("input", () => buildCompanyOptions($("#coSearch").value));
@@ -1003,16 +1003,31 @@ async function loadSaved() {
   renderCompanyResult(r);
 }
 // ---- target sheet (placement shortlist across companies) ----
+// A short, uncluttered preview of featured companies with a "show all" expander.
+const FEAT_PREVIEW = 12;
+let _coFeatExpanded = false, _coTgtExpanded = false;
+function _chipsHTML(selectedSet, expanded) {
+  const list = expanded ? CO.featured : CO.featured.slice(0, FEAT_PREVIEW);
+  let html = list.map((s) =>
+    `<button class="co-chip ${selectedSet && selectedSet.has(s) ? "on" : ""}" data-slug="${esc(s)}">${esc((CO.byslug[s] || {}).name || s)}</button>`).join("");
+  const extra = CO.featured.length - FEAT_PREVIEW;
+  if (extra > 0) html += `<button class="co-chip co-more" data-more="1">${expanded ? "Show less" : "+ " + extra + " more"}</button>`;
+  return html;
+}
+function renderSingleFeatured() {
+  $("#coFeatured").innerHTML = _chipsHTML(null, _coFeatExpanded);
+  $$("#coFeatured .co-chip[data-slug]").forEach((b) => b.addEventListener("click", () => selectCompany(b.dataset.slug)));
+  const m = $("#coFeatured .co-more"); if (m) m.addEventListener("click", () => { _coFeatExpanded = !_coFeatExpanded; renderSingleFeatured(); });
+}
 function renderTargetPicker() {
   const chips = CO.targets.map((s) =>
     `<span class="co-tchip">${esc((CO.byslug[s] || {}).name || s)}<button data-slug="${esc(s)}" title="Remove">×</button></span>`).join("");
   $("#coTargetChips").innerHTML = chips;
   $$("#coTargetChips .co-tchip button").forEach((b) => b.addEventListener("click", () => toggleTarget(b.dataset.slug, false)));
   $("#coTargetCount").textContent = CO.targets.length ? `${CO.targets.length}/8 selected` : "";
-  // reflect membership on the featured quick-add chips
-  $("#coTargetFeatured").innerHTML = CO.featured.map((s) =>
-    `<button class="co-chip ${CO.targets.includes(s) ? "on" : ""}" data-slug="${esc(s)}">${esc((CO.byslug[s] || {}).name || s)}</button>`).join("");
-  $$("#coTargetFeatured .co-chip").forEach((b) => b.addEventListener("click", () => toggleTarget(b.dataset.slug)));
+  $("#coTargetFeatured").innerHTML = _chipsHTML(new Set(CO.targets), _coTgtExpanded);
+  $$("#coTargetFeatured .co-chip[data-slug]").forEach((b) => b.addEventListener("click", () => toggleTarget(b.dataset.slug)));
+  const m = $("#coTargetFeatured .co-more"); if (m) m.addEventListener("click", () => { _coTgtExpanded = !_coTgtExpanded; renderTargetPicker(); });
 }
 async function toggleTarget(slug, forceAdd) {
   if (!slug) return;
@@ -1057,7 +1072,8 @@ function renderCompanyResult(r) {
   const inAppCount = r.questions.filter((q) => q.in_app).length;
   $("#coSummary").innerHTML =
     (targets ? `<span>Across: <b>${esc((r.targets || []).join(", "))}</b></span>`
-             : `<span>Window: <b>${esc(r.period)}</b></span>`) +
+             : saved ? `<span><b>Your bookmarked questions</b></span>`
+             : `<span>Window: <b>${esc(periodLabel(r.period))}</b></span>`) +
     `<span><b>${r.total}</b> unique questions</span>` +
     `<span><b>${inAppCount}</b> solvable in-app</span>` +
     `<span><b>${r.questions.filter((q) => q.bookmarked).length}</b> saved</span>`;
@@ -1240,7 +1256,7 @@ async function renderPlan(planArg) {
   $("#planProgress").textContent = `${pr.done}/${pr.total} done (${pr.pct}%)`;
   $("#planMeta").innerHTML =
     `<span><b>${plan.weeks}</b> weeks · <b>${plan.per_day}</b>/day</span>` +
-    `<span>Window: <b>${esc(plan.period || "")}</b></span>` +
+    `<span>Window: <b>${esc(periodLabel(plan.period))}</b></span>` +
     `<span>Started <b>${esc((plan.created || "").slice(0, 10))}</b></span>` +
     (plan.include_solved ? `<span>incl. solved</span>` : "") +
     (plan.topic_weighted ? `<span>⚡ weak-topic focus</span>` : "");

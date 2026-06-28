@@ -474,3 +474,8 @@ a.lc:hover{text-decoration:underline}
 .iv-chat .msg.bot.speaking{box-shadow:inset 3px 0 0 var(--acc,#7c5cfc)}
 #ivVoiceToggle{margin-left:auto}
 #ivVoiceToggle.off{opacity:.55}
+
+/* ---- company prep: tidy featured chips ---- */
+.co-featured{gap:8px}
+.co-chip.co-more{background:transparent;border-style:dashed;border-color:rgba(124,92,252,.5);color:#b9a7ff;font-weight:600}
+.co-chip.co-more:hover{background:rgba(124,92,252,.12)}
