@@ -38,6 +38,20 @@ def badges_md(items: list, owner: str, repo: str, pages_url: str = "") -> str:
     return "\n".join(lines) + "\n"
 
 
+def _barlist(counter, total, color="var(--acc)", top=8):
+    """Horizontal labeled bars for a Counter (languages, platforms, topics)."""
+    total = total or 1
+    out = []
+    for name, n in counter.most_common(top):
+        if not name:
+            continue
+        out.append(
+            f'<div class="brow"><span class="bk">{_esc(LABELS.get(name, name))}</span>'
+            f'<div class="bbar"><i style="width:{int(100*n/total)}%;background:{color}"></i></div>'
+            f'<span class="bn">{n}</span></div>')
+    return "".join(out)
+
+
 def render(items: list, owner: str = "", repo: str = "") -> str:
     base = f"https://github.com/{owner}/{repo}/tree/main" if owner and repo else ""
     card = f"https://raw.githubusercontent.com/{owner}/{repo}/main/profile/stats.png" if owner and repo else ""
@@ -51,8 +65,14 @@ def render(items: list, owner: str = "", repo: str = "") -> str:
     cur, longest = _streaks(days)
     last = max(days) if days else None
 
-    tiles = [("Solved", total), ("Current streak", f"{cur}d"), ("Longest", f"{longest}d"),
-             ("Active days", len(set(days))), ("Languages", len(langs)), ("Platforms", len(plat))]
+    # recent activity (UTC days)
+    from datetime import datetime, timezone, timedelta
+    today = datetime.now(timezone.utc).date()
+    last7 = sum(1 for d in days if d and (today - d).days < 7)
+    last30 = sum(1 for d in days if d and (today - d).days < 30)
+
+    tiles = [("Solved", total), ("This month", last30), ("Current streak", f"{cur}d"),
+             ("Longest", f"{longest}d"), ("Active days", len(set(days))), ("Platforms", len(plat))]
     tiles_html = "".join(
         f'<div class="tile"><div class="tv">{_esc(v)}</div><div class="tl">{_esc(l)}</div></div>'
         for l, v in tiles)
@@ -63,6 +83,10 @@ def render(items: list, owner: str = "", repo: str = "") -> str:
         f'<div class="dbar"><i style="width:{int(100*diff.get(lvl,0)/dtot)}%;background:{c}"></i></div>'
         f'<span class="dn">{diff.get(lvl,0)}</span></div>'
         for lvl, c in DIFF_COLOR.items())
+
+    lang_html = _barlist(langs, total, "#5b8cff") or '<div class="muted">—</div>'
+    plat_html = _barlist(plat, total, "#16a34a")
+    topic_bars = _barlist(tags, sum(tags.values()), "#7b7af6", top=10)
 
     chips_html = "".join(
         f'<button class="chip" data-topic="{_esc(t)}">{_esc(t)} <b>{n}</b></button>'
@@ -96,20 +120,27 @@ def render(items: list, owner: str = "", repo: str = "") -> str:
   :root{{--bg:#0f1117;--card:#171a24;--bd:#262b3b;--ink:#f0f2f8;--mut:#8a90a6;--acc:#7b7af6}}
   *{{box-sizing:border-box}} body{{margin:0;background:var(--bg);color:var(--ink);
     font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}}
-  .wrap{{max-width:960px;margin:0 auto;padding:40px 20px 80px}}
-  header{{display:flex;align-items:center;gap:16px;margin-bottom:28px}}
-  .logo{{width:54px;height:54px;border-radius:14px;background:var(--acc);display:grid;
-    place-items:center;font-weight:800;font-size:22px;color:#fff}}
-  h1{{margin:0;font-size:26px}} .sub{{color:var(--mut);font-size:14px}}
+  .wrap{{max-width:980px;margin:0 auto;padding:40px 20px 80px}}
+  .hero{{position:relative;border-radius:22px;border:1px solid var(--bd);overflow:hidden;
+    background:radial-gradient(1200px 300px at 0% -20%,rgba(123,122,246,.35),transparent),
+      linear-gradient(135deg,#181b27,#12141d);padding:30px 28px;margin-bottom:24px}}
+  header{{display:flex;align-items:center;gap:16px}}
+  .logo{{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#7b7af6,#5b8cff);
+    display:grid;place-items:center;font-weight:800;font-size:22px;color:#fff;flex-shrink:0}}
+  h1{{margin:0;font-size:28px}} .sub{{color:var(--mut);font-size:14px;margin-top:3px}}
   .card-img{{width:100%;border-radius:18px;border:1px solid var(--bd);margin:8px 0 26px;display:block}}
-  .tiles{{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:26px}}
+  .tiles{{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:8px}}
   @media(max-width:680px){{.tiles{{grid-template-columns:repeat(3,1fr)}}}}
   .tile{{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}}
   .tv{{font-size:24px;font-weight:800}} .tl{{color:var(--mut);font-size:12px;margin-top:2px}}
+  .cols{{display:grid;grid-template-columns:1fr 1fr;gap:24px}}
+  @media(max-width:680px){{.cols{{grid-template-columns:1fr}}}}
   h2{{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:26px 0 12px}}
-  .drow{{display:flex;align-items:center;gap:12px;margin:8px 0;font-weight:600;font-size:13px}}
-  .dbar{{flex:1;height:8px;background:#2e3344;border-radius:5px;overflow:hidden}}
-  .dbar i{{display:block;height:100%}} .dn{{color:var(--mut);width:28px;text-align:right}}
+  .drow,.brow{{display:flex;align-items:center;gap:12px;margin:8px 0;font-weight:600;font-size:13px}}
+  .dbar,.bbar{{flex:1;height:8px;background:#2e3344;border-radius:5px;overflow:hidden}}
+  .dbar i,.bbar i{{display:block;height:100%;border-radius:5px}}
+  .dn,.bn{{color:var(--mut);width:34px;text-align:right}}
+  .bk{{width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
   .chips{{display:flex;flex-wrap:wrap;gap:8px}}
   .chip{{background:var(--card);border:1px solid var(--bd);color:#b9c0d4;border-radius:16px;
     padding:6px 12px;font-size:13px;cursor:pointer}} .chip b{{color:var(--acc)}}
@@ -124,15 +155,20 @@ def render(items: list, owner: str = "", repo: str = "") -> str:
   footer a{{color:var(--acc)}}
 </style></head>
 <body><div class="wrap">
-  <header>
-    <div class="logo">GK</div>
-    <div><h1>{_esc(owner or "My profile")}</h1>
-    <div class="sub">Competitive Programming · last solved {last.isoformat() if last else "—"}</div></div>
-  </header>
+  <div class="hero">
+    <header>
+      <div class="logo">{_esc((owner[:2] or "GK").upper())}</div>
+      <div><h1>{_esc(owner or "My profile")}</h1>
+      <div class="sub">Competitive Programming portfolio · {total} solved · {last7} this week · last solved {last.isoformat() if last else "—"}</div></div>
+    </header>
+  </div>
   {card_img}
   <div class="tiles">{tiles_html}</div>
-  <h2>Difficulty</h2>{diff_html}
-  <h2>Topics</h2><div class="chips"><button class="chip active" data-topic="">All</button>{chips_html}</div>
+  <div class="cols">
+    <div><h2>Difficulty</h2>{diff_html}<h2>Languages</h2>{lang_html}</div>
+    <div><h2>Platforms</h2>{plat_html}<h2>Top topics</h2>{topic_bars}</div>
+  </div>
+  <h2>Browse by topic</h2><div class="chips"><button class="chip active" data-topic="">All</button>{chips_html}</div>
   <input id="q" placeholder="Search {total} problems…">
   <table><thead><tr><th>Problem</th><th>Platform</th><th>Difficulty</th><th>Lang</th><th>Solved</th></tr></thead>
   <tbody id="tb">{''.join(rows_html)}</tbody></table>
