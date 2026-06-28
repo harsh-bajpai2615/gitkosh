@@ -161,7 +161,7 @@ def _why_no_stt(groq_key: str) -> str:
 
 
 # ---------- transcription engines ----------
-def _transcribe_ondevice(path: str, hints=None, timeout: int = 45) -> str | None:
+def _transcribe_ondevice(path: str, hints=None, timeout: int = 15) -> str | None:
     """Transcribe on-device. The Speech framework (auth prompt + recognitionTask
     callbacks) must run on the main thread, but the JS bridge calls us on a worker
     thread — so we hop the work onto the main queue and block here on an Event until

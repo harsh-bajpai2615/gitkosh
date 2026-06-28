@@ -525,13 +525,22 @@ class Api:
         return voice.stop_speaking()
 
     def voice_start(self):
-        return voice.start_recording()
+        try:
+            return voice.start_recording()
+        except Exception as e:  # noqa: BLE001 — return, never throw, so the UI shows the cause
+            import traceback; traceback.print_exc()
+            return {"ok": False, "error": f"voice_start failed: {e}"}
 
     def voice_stop(self, hints=None):
-        # Use a stored Groq key as the cloud STT fallback when on-device isn't available.
-        llm = (load_config().get("readme", {}) or {}).get("llm", {}) or {}
-        groq_key = llm.get("api_key", "") if llm.get("provider") == "groq" else ""
-        return voice.stop_and_transcribe(groq_key, hints or [])
+        try:
+            # Stored Groq key (any provider) is the preferred / fallback STT engine.
+            llm = (load_config().get("readme", {}) or {}).get("llm", {}) or {}
+            key = (llm.get("api_key") or "").strip()
+            groq_key = key if key.startswith("gsk_") else ""
+            return voice.stop_and_transcribe(groq_key, hints or [])
+        except Exception as e:  # noqa: BLE001
+            import traceback; traceback.print_exc()
+            return {"ok": False, "error": f"voice_stop failed: {e}"}
 
     # ---- company-wise interview questions ----
     def list_companies(self):
