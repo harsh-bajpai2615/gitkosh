@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 DEFAULT_MODELS = {
     "gemini": "gemini-2.5-flash",  # 2.0-flash has no free-tier quota; 2.5-flash does
     "groq": "llama-3.3-70b-versatile",
-    "ollama": "llama3.1",
+    "ollama": "llama3.2",  # matches app/ollama_setup.py's auto-pulled model
 }
 
 

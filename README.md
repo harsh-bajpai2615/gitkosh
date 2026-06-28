@@ -95,7 +95,19 @@ token + repo, and solve. See [`extension/README.md`](extension/README.md).
 
 1. Download the latest **`gitkosh.dmg`** from [**Releases**](https://github.com/harsh-bajpai2615/gitkosh/releases/latest).
 2. Open it and drag **GitKosh** into **Applications**.
-3. First launch (the app isn't notarized yet): **right-click → Open → Open** — once. After that it opens normally and updates itself.
+3. **First launch.** GitKosh is free and open-source but not Apple-notarized (that needs a paid Apple Developer account), so macOS shows *"Apple could not verify GitKosh is free of malware."* This is expected for any indie app — pick whichever unlock works for your macOS:
+
+   **macOS 15 Sequoia & newer** (the dialog only offers *Done* / *Move to Bin*):
+   - Click **Done**, then open **System Settings → Privacy & Security**, scroll down to *"GitKosh was blocked…"* and click **Open Anyway** → confirm with Touch ID / password. It opens normally forever after.
+
+   **macOS 14 & earlier:** **right-click the app → Open → Open** — once.
+
+   **One-line alternative (any version)** — clears the download quarantine flag, then it just opens:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/GitKosh.app
+   ```
+
+   After the first unlock, GitKosh opens with a double-click and updates itself in place.
 
 ## 🚀 Usage
 

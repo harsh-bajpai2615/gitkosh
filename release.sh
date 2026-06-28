@@ -25,11 +25,28 @@ gh repo view "$REPO" >/dev/null 2>&1 || \
   gh repo create "$REPO" --public -d "GitKosh — releases & auto-update feed"
 
 # 4) publish the release with the zip (updater) + dmg (first-time installs)
+NOTES="$(cat <<'EOF'
+**Install**
+
+1. Download **`gitkosh.dmg`** below, open it, and drag **GitKosh** into **Applications**.
+2. **First launch.** GitKosh is open-source but not Apple-notarized (that needs a paid Apple Developer account), so macOS warns *"Apple could not verify GitKosh is free of malware."* — normal for any indie app. Unlock it once:
+   - **macOS 15 Sequoia & newer:** click **Done**, then open **System Settings → Privacy & Security**, scroll to *"GitKosh was blocked…"* and click **Open Anyway**.
+   - **macOS 14 & earlier:** **right-click the app → Open → Open**.
+   - **Or, in Terminal (any version):** `xattr -dr com.apple.quarantine /Applications/GitKosh.app`
+
+   After that it opens with a double-click and auto-updates.
+
+**AI features (tutor, reviews, write-ups)**
+
+Open **Setup → AI engine** and click **Ollama** — GitKosh installs & starts it for you (free, fully local, no key; one-time ~2 GB model download). Or paste a free Gemini/Groq key.
+EOF
+)"
 if gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
-  echo "Release $TAG already exists — uploading/overwriting assets."
+  echo "Release $TAG already exists — uploading assets and refreshing notes."
   gh release upload "$TAG" dist/GitKosh.zip dist/gitkosh.dmg -R "$REPO" --clobber
+  gh release edit "$TAG" -R "$REPO" -t "GitKosh $TAG" -n "$NOTES"
 else
   gh release create "$TAG" dist/GitKosh.zip dist/gitkosh.dmg \
-    -R "$REPO" -t "GitKosh $TAG" -n "Automated release of GitKosh $TAG."
+    -R "$REPO" -t "GitKosh $TAG" -n "$NOTES"
 fi
 echo "==> Done. Installed copies will offer the update on next launch."

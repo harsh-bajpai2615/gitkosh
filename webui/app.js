@@ -99,6 +99,7 @@ async function renderSetup() {
   $$("#providerSeg button").forEach((b) =>
     b.classList.toggle("on", b.dataset.v === (s.provider || "ollama")));
   updateKeyField(s.provider || "ollama", s.api_key);
+  refreshProvNote();
 }
 
 function curProvider() { const o = $("#providerSeg button.on"); return o ? o.dataset.v : "ollama"; }
@@ -215,7 +216,42 @@ $("#btnCopyResume").addEventListener("click", () => {
 $$("#providerSeg button").forEach((b) => b.addEventListener("click", () => {
   $$("#providerSeg button").forEach((x) => x.classList.toggle("on", x === b));
   updateKeyField(b.dataset.v);
-  act("set_provider", b.dataset.v); }));
+  act("set_provider", b.dataset.v);
+  if (b.dataset.v === "ollama") ensureOllama(); }));
+
+// Install / start Ollama + pull the model, with live progress. Idempotent, so it's
+// safe to call whenever the user picks Ollama — it's near-instant once set up.
+async function ensureOllama() {
+  if (!api()) return;
+  const st = await act("ai_status");
+  if (st && st.ready) { refreshProvNote(); return; }
+  showProg();
+  window.gkProgress("Setting up local AI (Ollama)…", 5);
+  const r = await act("setup_ollama");
+  $("#progWrap").classList.add("hidden");
+  if (r && r.ok) toast("✓ Local AI is ready");
+  else toast("Ollama setup failed: " + ((r && r.error) || "unknown") + " — see ollama.com");
+  refreshProvNote();
+}
+
+async function refreshProvNote() {
+  if (!api()) return;
+  const st = await act("ai_status");
+  const note = $("#provNote");
+  if (!note || !st) return;
+  if (st.provider === "ollama") {
+    if (st.ready) {
+      note.className = "provNote rec";
+      note.innerHTML = "<b>✓ Ollama ready.</b> Free, fully local & private — AI tutor, reviews and write-ups are on.";
+    } else if (st.state === "running_no_model") {
+      note.className = "provNote warn";
+      note.innerHTML = "Ollama is running — finishing the one-time model download. Hang tight a moment.";
+    } else {
+      note.className = "provNote";
+      note.innerHTML = "Click <b>Ollama</b> above to install & start it automatically (one-time, a couple of GB).";
+    }
+  }
+}
 $("#btnSaveKey").addEventListener("click", () =>
   act("save_ai", curProvider(), $("#apiKey").value).then(() => toast("AI settings saved")));
 /* ---------- practice / quiz 2.0 ---------- */
@@ -646,6 +682,7 @@ async function maybeWelcome() {
       act("set_provider", provider);
     }
     switchTabByName("setup");
+    if (provider === "ollama") ensureOllama();
   };
   $("#welcomeGotIt").addEventListener("click", () => close("ollama"));
   $("#welcomeSkip").addEventListener("click", () => close("gemini"));

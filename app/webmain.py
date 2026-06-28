@@ -16,8 +16,8 @@ import threading
 
 import webview
 
-from . import (coach, constants, gamify, github_auth, patterns, posts, problems,
-               roadmap, runner, site, srs)
+from . import (coach, constants, gamify, github_auth, ollama_setup, patterns,
+               posts, problems, roadmap, runner, site, srs)
 from .appsupport import STATE_DIR, load_config, save_config
 from .cards import render_png
 from .contests import cf_rating, upcoming as cf_upcoming
@@ -95,8 +95,50 @@ def _prog(text, pct=8):
 _SENTINEL = "===GITKOSH_REPLY_BELOW==="
 
 
+def _ensure_ollama_ready(cfg):
+    """If Ollama is the provider, auto-start the local server (when installed) and
+    pin the request to a model that's actually pulled — so a fresh selection or a
+    stale model name never silently fails. Mutates the in-memory cfg only."""
+    llm = (cfg.get("readme", {}) or {}).get("llm", {}) or {}
+    if llm.get("provider") != "ollama":
+        return
+    if not ollama_setup.server_up() and ollama_setup.app_installed():
+        ollama_setup.ensure_running(wait=12)  # launch the installed app, brief wait
+    avail = ollama_setup.models()
+    if avail and llm.get("model") not in avail:
+        llm["model"] = avail[0]  # never request a model that isn't downloaded
+
+
+def _ai_hint():
+    """A precise, actionable message for when the AI produced nothing — so the user
+    knows exactly what to do instead of a vague 'pick an engine'."""
+    llm = (load_config().get("readme", {}) or {}).get("llm", {}) or {}
+    provider = llm.get("provider", "none")
+    if provider in ("", "none"):
+        return ("Turn on an AI engine in **Setup → AI engine** to use this — "
+                "**Ollama** is free, private and runs on your Mac.")
+    if provider == "ollama":
+        state, _ = ollama_setup.status()
+        if state == "not_installed":
+            return ("Ollama isn't installed yet. Go to **Setup → AI engine**, click **Ollama**, "
+                    "and it will install & start automatically (one-time, a couple of GB).")
+        if state == "installed_not_running":
+            return ("Ollama is installed but its server isn't running. Open **Setup → AI engine → Ollama** "
+                    "to start it, then try again.")
+        if state == "running_no_model":
+            return ("Ollama is running but still downloading its model. Give it a minute "
+                    "(re-open **Setup → AI engine → Ollama** to watch progress), then try again.")
+        return "Ollama didn't respond. Make sure the Ollama app is running, then try again."
+    if not llm.get("api_key"):
+        return f"Add your {provider.title()} API key in **Setup → AI engine**, then try again."
+    return (f"The {provider.title()} request failed — check your API key and internet connection "
+            "in **Setup → AI engine**. (Tip: **Ollama** runs locally with no key.)")
+
+
 def _ask(prompt):
-    rg = ReadmeGenerator(load_config()["readme"])
+    cfg = load_config()
+    _ensure_ollama_ready(cfg)
+    rg = ReadmeGenerator(cfg["readme"])
     full = (prompt.rstrip() + "\n\nIMPORTANT: Do not repeat this prompt, the problem, or the user's code. "
             "Write ONLY your response, in GitHub-flavored Markdown, after the marker line.\n" + _SENTINEL + "\n")
     out = rg.freeform(full) or ""
@@ -170,6 +212,44 @@ class Api:
         cfg["readme"]["mode"] = "minimal" if provider == "none" else "llm"
         save_config(cfg)
         return True
+
+    def ai_status(self):
+        """Live status of the configured AI engine (drives the Setup UI)."""
+        llm = (load_config().get("readme", {}) or {}).get("llm", {}) or {}
+        provider = llm.get("provider", "none")
+        out = {"provider": provider, "ready": False, "state": "", "models": [],
+               "needs_setup": False, "message": ""}
+        if provider == "ollama":
+            state, ms = ollama_setup.status()
+            out.update(state=state, models=ms, ready=(state == "ready"),
+                       needs_setup=(state != "ready"))
+        elif provider in ("gemini", "groq"):
+            out["ready"] = bool(llm.get("api_key"))
+            out["needs_setup"] = not out["ready"]
+        return out
+
+    def setup_ollama(self):
+        """One-click local AI: install Ollama if missing, start its server, pull the
+        model — all with live progress. Idempotent (cheap once already set up)."""
+        cfg = load_config()
+        llm = cfg.setdefault("readme", {}).setdefault("llm", {})
+        llm["provider"] = "ollama"
+        llm["model"] = DEFAULT_MODELS["ollama"]
+        cfg["readme"]["mode"] = "llm"
+        save_config(cfg)
+        try:
+            _prog("Setting up local AI (Ollama)…", 5)
+            ollama_setup.setup(DEFAULT_MODELS["ollama"], progress=lambda m: _prog(m, 55))
+            # Pin to whatever actually got pulled, so requests never 404.
+            avail = ollama_setup.models()
+            if avail and llm["model"] not in avail:
+                llm["model"] = avail[0]
+                save_config(cfg)
+            _prog("Local AI ready.", 100)
+            return {"ok": True, "model": llm["model"]}
+        except Exception as e:  # noqa: BLE001
+            _prog("", 0)
+            return {"ok": False, "error": str(e)}
 
     def github_login(self):
         try:
@@ -265,7 +345,7 @@ class Api:
             "concisely with well-structured GitHub-flavored Markdown — use short headings, bullet lists "
             "and fenced code blocks where helpful. When asked for a hint, give a nudge; don't dump the "
             "full solution unless explicitly asked.\n\nConversation so far:\n" + convo)
-        return out or "Pick an AI provider in Setup (Ollama is free & local) to chat with the tutor."
+        return out or _ai_hint()
 
     def get_onboarded(self):
         return bool(load_config().get("onboarded"))
@@ -380,7 +460,7 @@ class Api:
                     + "\n\nIf NOT correct:\n" + ladder)
 
         out = _ask(body)
-        return out or "Couldn't review — pick an AI engine in Setup (Ollama recommended)."
+        return out or _ai_hint()
 
     def grade_answer(self, key, answer):
         appr = ""
@@ -394,7 +474,7 @@ class Api:
             "You are a coding-interview coach. Grade my recalled approach against the reference. "
             "Reply in 3 short lines: a verdict (✅ solid / ⚠️ partial / ❌ off), what I got right, "
             "and what I missed.\n\nReference:\n" + appr + "\n\nMy answer:\n" + answer)
-        return out or "Couldn't grade — no AI provider configured (pick Ollama/Gemini in Setup)."
+        return out or _ai_hint()
 
 
 def main():

@@ -53,4 +53,7 @@ rm -rf "$STAGE"
 echo "==> Done: $DMG"
 echo
 echo "Install: open the DMG, drag gitkosh.app to Applications."
-echo "First launch on any Mac (unsigned): right-click the app -> Open -> Open."
+echo "First launch (unsigned/un-notarized):"
+echo "  macOS 15+ : System Settings -> Privacy & Security -> 'Open Anyway'."
+echo "  macOS 14- : right-click the app -> Open -> Open."
+echo "  any macOS : xattr -dr com.apple.quarantine /Applications/GitKosh.app"
