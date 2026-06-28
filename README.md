@@ -15,7 +15,7 @@
 
 <br/>
 
-<img src="docs/demo.gif" width="560" alt="GitKosh — Setup, Showcase, Insights, Contests" />
+<img src="docs/demo-v1.1.gif" width="760" alt="GitKosh — Company prep, Study plan, Mock interview & Insights" />
 
 </div>
 
@@ -70,6 +70,24 @@ GitKosh is a macOS app with three halves that feed each other:
 - **Nothing to install on your Mac.** No `git`, no terminal, no Python — it talks to GitHub over the API and ships its own runtime.
 - **Live progress.** A real progress bar: *Fetching → Writing READMEs i/N → Pushing → Done.*
 
+## 🎯 Company prep tab
+
+<div align="center"><img src="docs/webui-companies.png" width="720" alt="GitKosh Company prep — most-asked questions per company, matched to your solves" /></div>
+
+The most-asked LeetCode questions for **657 companies** (FAANG + Indian-placement favourites featured), ranked by frequency and matched against what you've already solved. Filter by **difficulty / topic / unsolved / in-app**, bookmark across companies, and build a **multi-company target sheet** that merges your shortlist and ranks the highest-overlap problems first.
+
+## 📅 Study plan tab
+
+<div align="center"><img src="docs/webui-plan.png" width="720" alt="GitKosh Study plan — a dated schedule with weak-topic focus" /></div>
+
+Turn any company (or your target sheet) into a **dated, day-by-day schedule** with balanced daily difficulty and an optional **weak-topic emphasis**. A "Today's focus" card tells you exactly what to solve, progress tracks against your real solves, and a daily reminder keeps you on pace.
+
+## 🎤 Mock interview tab (voice)
+
+<div align="center"><img src="docs/webui-interview.png" width="720" alt="GitKosh Mock interview — voice-first AI interviewer" /></div>
+
+A timed problem with an AI interviewer that **speaks its questions aloud** and lets you **answer by voice** (auto-listen between turns), then grades you with a structured scorecard. Optionally flip on **Groq just for the interview & voice** — a far sharper interviewer (Llama 3.3 70B) without changing your main, free/local AI engine.
+
 ## 🎓 Learn & Solve tab
 
 <div align="center"><img src="docs/webui-learn.png" width="620" alt="GitKosh Learn & Solve tab — in-app editor with the NeetCode 150 + Blind 75" /></div>
@@ -88,7 +106,7 @@ A live stats card, a one-click portfolio website, and shareable progress posts �
 
 ## 📊 Insights tab
 
-<div align="center"><img src="docs/insights.png" width="540" alt="GitKosh Insights tab" /></div>
+<div align="center"><img src="docs/webui-insights.png" width="720" alt="GitKosh Insights tab — per-topic strength, difficulty mastery, résumé bullets" /></div>
 
 Topic strengths, difficulty mastery, solving pace, AI solution-quality coaching, résumé bullets, and a built-in spaced-repetition quiz.
 
