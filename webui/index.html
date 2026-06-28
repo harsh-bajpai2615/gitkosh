@@ -243,15 +243,36 @@
         fully-private experience we recommend <b>Ollama</b>: a free AI model that runs
         locally on your Mac, powering the tutor, write-ups, quizzes & coaching.</p>
       <div class="modal-steps">
-        <div class="step"><span class="num">1</span> Install Ollama from <b>ollama.com</b> (free)</div>
-        <div class="step"><span class="num">2</span> In Terminal run <code>ollama pull llama3.1</code></div>
-        <div class="step"><span class="num">3</span> That's it — GitKosh uses it automatically</div>
+        <div class="step"><span class="num">1</span> Click <b>Use Ollama</b> below</div>
+        <div class="step"><span class="num">2</span> GitKosh installs &amp; starts it for you — no Terminal</div>
+        <div class="step"><span class="num">3</span> First run downloads the model once (a couple of GB)</div>
       </div>
       <p class="modal-warn">Prefer a cloud key (Gemini / Groq)? That works too — but
         replies can be slower and may hit rate limits during heavy use.</p>
       <div class="modal-actions">
         <button class="btn btn-accent" id="welcomeGotIt">Use Ollama (recommended)</button>
         <button class="btn ghost" id="welcomeSkip">I'll use a cloud key</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="ghAuth">
+    <div class="modal-card">
+      <h2>Connect GitHub</h2>
+      <p>GitHub will ask for a code. Here it is — we've also copied it to your clipboard:</p>
+      <div class="gh-code" id="ghCode">····-····</div>
+      <div class="modal-actions" style="margin-top:14px">
+        <button class="btn ghost sm" id="ghCopy">Copy code</button>
+        <button class="btn btn-accent" id="ghOpen">Open GitHub →</button>
+      </div>
+      <div class="modal-steps" style="margin-top:16px">
+        <div class="step"><span class="num">1</span> Click <b>Open GitHub</b> (sign in if needed)</div>
+        <div class="step"><span class="num">2</span> Paste the code above &amp; click <b>Continue</b></div>
+        <div class="step"><span class="num">3</span> Click <b>Authorize</b> — this window finishes automatically</div>
+      </div>
+      <p class="modal-warn" id="ghStatusMsg">Waiting for you to authorize on GitHub…</p>
+      <div class="modal-actions">
+        <button class="btn ghost" id="ghCancel">Cancel</button>
       </div>
     </div>
   </div>

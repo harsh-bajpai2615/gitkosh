@@ -201,7 +201,32 @@ async function act(method, ...args) {
   if (!a) { toast("Preview mode — run inside GitKosh to use this."); return null; }
   try { return await a[method](...args); } catch (e) { toast("Error: " + e); return null; }
 }
-$("#btnGithub").addEventListener("click", () => act("github_login").then(renderSetup));
+$("#btnGithub").addEventListener("click", connectGithub);
+async function connectGithub() {
+  if (!api()) { toast("Open this inside GitKosh to connect GitHub."); return; }
+  const btn = $("#btnGithub"); btn.disabled = true;
+  const d = await act("github_start");
+  btn.disabled = false;
+  if (!d || !d.ok) { toast("Couldn't start GitHub login: " + ((d && d.error) || "check your connection")); return; }
+  // Show the code BEFORE opening the browser — GitHub never shows it for you.
+  $("#ghCode").textContent = d.user_code;
+  try { await navigator.clipboard?.writeText(d.user_code); } catch (e) {}
+  const status = $("#ghStatusMsg"); status.textContent = "Waiting for you to authorize on GitHub…";
+  $("#ghCopy").onclick = async () => { try { await navigator.clipboard?.writeText(d.user_code); toast("Code copied"); } catch (e) {} };
+  $("#ghOpen").onclick = () => act("github_open", d.verification_uri);
+  let cancelled = false;
+  $("#ghCancel").onclick = () => { cancelled = true; $("#ghAuth").classList.add("hidden"); };
+  $("#ghAuth").classList.remove("hidden");
+  const res = await act("github_poll", d.device_code, d.interval, d.expires_in);
+  if (cancelled) return;
+  if (res && res.ok) {
+    $("#ghAuth").classList.add("hidden");
+    toast("✓ Connected as " + res.login);
+    renderSetup();
+  } else {
+    status.textContent = "Login didn't complete: " + ((res && res.error) || "timed out") + ". Close this and try again.";
+  }
+}
 $("#btnSync").addEventListener("click", () => { showProg(); act("run_sync", false); });
 $("#btnReset").addEventListener("click", () => { showProg(); act("run_sync", true); });
 $("#btnPublish").addEventListener("click", () => act("publish_site").then((u) => u && toast("Published: " + u)));

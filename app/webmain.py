@@ -253,22 +253,37 @@ class Api:
             _prog("", 0)
             return {"ok": False, "error": str(e)}
 
-    def github_login(self):
+    def github_start(self):
+        """Begin GitHub device-flow login. Returns the user_code to display BEFORE
+        opening the browser (GitHub shows no code itself — the user must type ours)."""
         try:
-            cid = constants.GITHUB_CLIENT_ID
-            d = github_auth.start_device_flow(cid)
-            import webbrowser
-            webbrowser.open(d["verification_uri"])
-            _prog(f"Enter code {d['user_code']} in your browser to authorize…", 30)
-            token = github_auth.poll_for_token(cid, d["device_code"], d.get("interval", 5),
-                                               d.get("expires_in", 900))
+            d = github_auth.start_device_flow(constants.GITHUB_CLIENT_ID)
+            return {"ok": True, "user_code": d["user_code"],
+                    "verification_uri": d.get("verification_uri", "https://github.com/login/device"),
+                    "device_code": d["device_code"], "interval": d.get("interval", 5),
+                    "expires_in": d.get("expires_in", 900)}
+        except Exception as e:  # noqa: BLE001
+            return {"ok": False, "error": str(e)}
+
+    def github_open(self, url=""):
+        """Open the GitHub device-authorization page in the user's real browser."""
+        import webbrowser
+        if not (url or "").startswith("https://github.com/"):
+            url = "https://github.com/login/device"
+        webbrowser.open(url)
+        return True
+
+    def github_poll(self, device_code, interval=5, expires_in=900):
+        """Wait for the user to approve, then store the token. {ok, login} or {ok, error}."""
+        try:
+            token = github_auth.poll_for_token(
+                constants.GITHUB_CLIENT_ID, device_code,
+                int(interval or 5), int(expires_in or 900))
             login = GitHubAPI(token, "").whoami()
             github_auth.save_token(STATE_DIR, token, login)
-            _prog("Connected to GitHub.", 100)
-            return login
+            return {"ok": True, "login": login}
         except Exception as e:  # noqa: BLE001
-            _prog(f"GitHub login failed: {e}", 0)
-            return None
+            return {"ok": False, "error": str(e)}
 
     def cp_login(self, name):
         try:
