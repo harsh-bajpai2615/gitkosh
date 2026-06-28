@@ -49,8 +49,8 @@ class GitHubSync:
     def write_submission(self, sub: "Submission", readme: str) -> Path:
         d = self.repo / sub.platform / sub.dirname
         d.mkdir(parents=True, exist_ok=True)
-        (d / f"solution.{sub.ext}").write_text(sub.code)
-        (d / "README.md").write_text(readme)
+        (d / f"solution.{sub.ext}").write_text(sub.code, encoding="utf-8")
+        (d / "README.md").write_text(readme, encoding="utf-8")
         return d
 
     # ---------- git ----------

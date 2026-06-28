@@ -16,11 +16,11 @@ import time
 def run_python(code: str, stdin: str = "", timeout: int = 6) -> dict:
     fd, path = tempfile.mkstemp(suffix=".py")
     try:
-        with os.fdopen(fd, "w") as f:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(code)
         t0 = time.time()
         p = subprocess.run([sys.executable, path], input=stdin, capture_output=True,
-                           text=True, timeout=timeout)
+                           text=True, encoding="utf-8", errors="replace", timeout=timeout)
         return {"ok": p.returncode == 0, "stdout": p.stdout, "stderr": p.stderr,
                 "ms": round((time.time() - t0) * 1000)}
     except subprocess.TimeoutExpired:

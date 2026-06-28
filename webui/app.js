@@ -72,10 +72,16 @@ function countUp(el, target) {
 }
 
 /* ---------- data ---------- */
-async function getState() { const a = api(); return a ? await a.get_state() : SAMPLE; }
-async function getInsights() { const a = api(); return a ? await a.get_insights() : SAMPLE.insights; }
-async function getContests() { const a = api(); return a ? await a.get_contests() : SAMPLE.contests; }
-async function getCard() { const a = api(); return a ? await a.get_card() : SAMPLE.card; }
+// These call the bridge directly (not through act), so guard each: a Python-side
+// exception must not reject the awaiting render*() and leave the tab blank.
+async function _safe(fn, fallback) {
+  const a = api(); if (!a) return fallback;
+  try { return await fn(a); } catch (e) { toast("Error: " + e); return fallback; }
+}
+async function getState() { return _safe((a) => a.get_state(), SAMPLE); }
+async function getInsights() { return _safe((a) => a.get_insights(), SAMPLE.insights); }
+async function getContests() { return _safe((a) => a.get_contests(), SAMPLE.contests); }
+async function getCard() { return _safe((a) => a.get_card(), SAMPLE.card); }
 
 /* ---------- setup ---------- */
 async function renderSetup() {
@@ -151,9 +157,9 @@ async function renderInsights() {
     db.appendChild(row);
     setTimeout(() => { row.querySelector(".bar-fill").style.width = (100 * n / tot) + "%"; }, 60);
   });
-  $("#topics").innerHTML = (d.topics || []).map((t) => `<span class="chip">${t}</span>`).join("");
-  $("#resume").innerHTML = (d.resume || []).map((b) => `<li>${b.replace(/^[-•]\s*/, "")}</li>`).join("");
-  const g = api() ? await act("get_gamify") : GAMIFY_SAMPLE;
+  $("#topics").innerHTML = (d.topics || []).map((t) => `<span class="chip">${esc(t)}</span>`).join("");
+  $("#resume").innerHTML = (d.resume || []).map((b) => `<li>${esc(b.replace(/^[-•]\s*/, ""))}</li>`).join("");
+  const g = (api() ? await act("get_gamify") : GAMIFY_SAMPLE) || GAMIFY_SAMPLE;
   $("#lvlBadge").textContent = "Lv " + g.level;
   $("#xpLabel").textContent = g.xp + " XP · " + g.earned + "/" + g.total_badges + " badges";
   $("#xpNext").textContent = g.into + "/" + g.need + " to Lv " + (g.level + 1);
@@ -174,10 +180,14 @@ const PATTERNS_SAMPLE = [
 /* ---------- contests ---------- */
 async function renderContests() {
   const d = await getContests();
-  $("#contestList").innerHTML = (d.upcoming || []).map((c) =>
-    `<div class="contest"><span class="cbadge ${c.platform === "codeforces" ? "cf" : "lc"}">${LABELS[c.platform] || c.platform}</span>
-     <span class="nm">${c.name}</span><span class="when">${c.when} · ${c.dur}</span>
-     <a href="${c.url}" target="_blank">open</a></div>`).join("") ||
+  $("#contestList").innerHTML = (d.upcoming || []).map((c) => {
+    // Contest name/url come from external APIs — escape before injecting, and
+    // only emit the link if it's a real http(s) URL.
+    const safeUrl = /^https?:\/\//i.test(c.url || "") ? esc(c.url) : "";
+    return `<div class="contest"><span class="cbadge ${c.platform === "codeforces" ? "cf" : "lc"}">${esc(LABELS[c.platform] || c.platform)}</span>
+     <span class="nm">${esc(c.name)}</span><span class="when">${esc(c.when)} · ${esc(c.dur)}</span>
+     ${safeUrl ? `<a href="${safeUrl}" target="_blank" rel="noopener">open</a>` : ""}</div>`;
+  }).join("") ||
     `<div class="muted">Couldn't load contests.</div>`;
   drawRating(d.rating || [], d.handle);
 }
@@ -227,11 +237,16 @@ async function connectGithub() {
     status.textContent = "Login didn't complete: " + ((res && res.error) || "timed out") + ". Close this and try again.";
   }
 }
-$("#btnSync").addEventListener("click", () => { showProg(); act("run_sync", false); });
-$("#btnReset").addEventListener("click", () => { showProg(); act("run_sync", true); });
-$("#btnPublish").addEventListener("click", () => act("publish_site").then((u) => u && toast("Published: " + u)));
+// Keep the final "done"/error state visible briefly, then clear the bar so it
+// doesn't stay pinned at 100% until the next action.
+async function runSyncFlow(reset) { showProg(); try { await act("run_sync", reset); } finally { setTimeout(() => $("#progWrap").classList.add("hidden"), 4000); } }
+$("#btnSync").addEventListener("click", () => runSyncFlow(false));
+$("#btnReset").addEventListener("click", () => runSyncFlow(true));
+$("#btnPublish").addEventListener("click", () =>
+  act("publish_site").then((u) => toast(u ? "Published: " + u : "Couldn't publish — connect GitHub and sync first.")));
 $("#btnPost").addEventListener("click", async () => { $("#postBox").value = "Generating…";
-  const r = await act("generate_post"); if (r) $("#postBox").value = r.post; });
+  const r = await act("generate_post");
+  $("#postBox").value = (r && r.post) || ""; if (!r || !r.post) toast("Couldn't generate a post — check your AI provider."); });
 $("#btnCopyEmbed").addEventListener("click", async () => {
   const md = await act("get_embed"); navigator.clipboard?.writeText(md || ""); toast("Embed code copied"); });
 $("#btnRefreshCard").addEventListener("click", renderCard);
@@ -294,7 +309,7 @@ const SAMPLE_PRACTICE = {
     { key: "y", title: "Count Stable Subarrays", platform: "LeetCode", difficulty: "Medium",
       tags: ["Array", "Prefix Sum"], approach: "Prefix sums + two pointers.", url: "#" }],
 };
-async function getPractice() { const a = api(); return a ? await a.get_practice() : SAMPLE_PRACTICE; }
+async function getPractice() { return _safe((a) => a.get_practice(), SAMPLE_PRACTICE); }
 
 let Q = { queue: [], idx: 0, mode: "recall" };
 function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
@@ -529,7 +544,9 @@ function buildProblemOptions(filter) {
 }
 
 const DIFF_CLASS = { Easy: "easy", Medium: "med", Hard: "hard" };
+let _loadSeq = 0;
 async function loadProblem(forceReset) {
+  const seq = ++_loadSeq;  // ignore stale responses if the user switches problems fast
   const pid = $("#probSelect").value;
   $("#runOut").textContent = ""; $("#runStatus").textContent = "";
   $("#reviewOut").classList.add("hidden"); $("#reviewOut").innerHTML = "";
@@ -542,6 +559,8 @@ async function loadProblem(forceReset) {
   }
   $("#stdinWrap").classList.add("hidden"); $("#testBtn").style.display = ""; $("#reviewBtn").style.display = "";
   const p = api() ? await act("get_problem", pid) : (PROBLEMS.find((x) => x.id === pid) || { statement: "(preview) Solve in the app.", starter: "def solve():\n    pass\n" });
+  if (seq !== _loadSeq) return;  // a newer loadProblem() superseded this one
+  if (!p) return;
   if (forceReset) reviewAttempts[pid] = 0;
   const dc = DIFF_CLASS[p.difficulty] || "med";
   $("#probMeta").innerHTML =
@@ -554,6 +573,7 @@ async function loadProblem(forceReset) {
   let code = p.starter || "";
   if (!forceReset && api()) {
     const saved = await act("get_code", pid);
+    if (seq !== _loadSeq) return;  // stale — a newer problem was selected meanwhile
     if (saved && saved.trim()) code = saved;
   }
   setEditor(code);
@@ -661,6 +681,7 @@ async function runCode() {
   const out = $("#runOut"); out.textContent = "Running…"; $("#runStatus").textContent = "";
   if (!api()) { toast("Run works inside the app."); out.textContent = ""; return; }
   const r = await act("run_code", $("#editor").value, $("#stdin") ? $("#stdin").value : "");
+  if (!r) { out.textContent = ""; toast("Run failed — try again."); return; }
   out.textContent = (r.stdout || "") + (r.stderr ? "\n" + r.stderr : "");
   $("#runStatus").textContent = (r.ok ? "✓ ran" : "✗ error") + `  ${r.ms || 0}ms`;
   $("#runStatus").className = "runstatus " + (r.ok ? "ok" : "bad");
@@ -670,6 +691,7 @@ async function runTests() {
   const out = $("#runOut"); out.textContent = "Running tests…"; $("#runStatus").textContent = "";
   if (!api()) { toast("Tests run inside the app."); out.textContent = ""; return; }
   const r = await act("run_tests", $("#editor").value, $("#probSelect").value);
+  if (!r) { out.textContent = ""; toast("Couldn't run tests — try again."); return; }
   out.textContent = r.output || "";
   $("#runStatus").textContent = `${r.passed}/${r.total} passed`;
   $("#runStatus").className = "runstatus " + (r.ok ? "ok" : "bad");

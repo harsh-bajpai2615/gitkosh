@@ -7,6 +7,8 @@ reviewed by the AI tutor. A curated subset also ships with automated test cases
 """
 from __future__ import annotations
 
+import re
+
 from .problem_catalog import CATALOG, ORDER
 from .runner import run_python
 
@@ -26,7 +28,7 @@ TESTED = {
         "cases": [[[2], 2], [[3], 3], [[5], 8]]},
     "binary-search": {"func": "search",
         "cases": [[[[-1, 0, 3, 5, 9, 12], 9], 4], [[[-1, 0, 3, 5, 9, 12], 2], -1], [[[5], 5], 0]]},
-    "two-sum": {"func": "twoSum",
+    "two-sum": {"func": "twoSum", "unordered": True,
         "cases": [[[[2, 7, 11, 15], 9], [0, 1]], [[[3, 2, 4], 6], [1, 2]], [[[3, 3], 6], [0, 1]]]},
     "valid-palindrome": {"func": "isPalindrome",
         "cases": [[["A man, a plan, a canal: Panama"], True], [["race a car"], False], [[" "], True]]},
@@ -56,13 +58,16 @@ def get(pid):
             "tested": pid in TESTED, "blind75": c.get("blind75", False)}
 
 
-def _harness(code, func, cases):
+def _harness(code, func, cases, unordered=False):
+    # unordered: accept the answer in any order (e.g. two-sum index pairs), to
+    # match what the judge actually accepts.
+    cmp = "(sorted(_g) == sorted(_e))" if unordered else "(_g == _e)"
     return (code + "\n\n"
             + f"_C = {cases!r}\n_p = 0\n"
             + "for _i, (_a, _e) in enumerate(_C):\n"
             + "    try:\n"
             + f"        _g = {func}(*_a)\n"
-            + "        _ok = (_g == _e)\n"
+            + f"        _ok = {cmp}\n"
             + "        print(('PASS' if _ok else 'FAIL') + f' #{_i+1}  input={_a}  ->  {_g}'"
             + " + ('' if _ok else f'   (expected {_e})'))\n"
             + "        _p += 1 if _ok else 0\n"
@@ -76,14 +81,17 @@ def run_tests(code, pid):
     if not t:
         return {"ok": False, "passed": 0, "total": 0,
                 "output": "No automated tests for this problem — use “AI Review” to check your solution."}
-    res = run_python(_harness(code or "", t["func"], t["cases"]))
+    res = run_python(_harness(code or "", t["func"], t["cases"], t.get("unordered", False)))
     out = res["stdout"]
     passed = total = 0
     lines = []
     for ln in out.splitlines():
-        if ln.startswith("__RESULT__"):
-            _, p, tt = ln.split()
-            passed, total = int(p), int(tt)
+        # Only honor a strictly-formatted sentinel (so user code that happens to
+        # print "__RESULT__ ..." can't crash the parser or fake a pass); the last
+        # match wins — that's the one the harness emits.
+        m = re.fullmatch(r"__RESULT__ (\d+) (\d+)", ln)
+        if m:
+            passed, total = int(m.group(1)), int(m.group(2))
         else:
             lines.append(ln)
     if res["stderr"]:

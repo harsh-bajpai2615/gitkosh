@@ -18,7 +18,16 @@ window.addEventListener("message", async (e) => {
   try {
     const payload = await fetchSubmission(id);
     if (payload && payload.code) {
-      chrome.runtime.sendMessage({ type: "push", payload });
+      // Inspect the push result so failures are surfaced instead of silently
+      // dropped (the user otherwise believes solutions are syncing when they're not).
+      chrome.runtime.sendMessage({ type: "push", payload }, (resp) => {
+        // The background worker sets the error badge; here we just log for the
+        // page console. (chrome.action is unavailable in content scripts.)
+        if (chrome.runtime.lastError || !resp || !resp.ok) {
+          const why = chrome.runtime.lastError?.message || (resp && resp.error) || "unknown error";
+          console.warn("GitKosh push failed:", why);
+        }
+      });
     }
   } catch (err) {
     console.warn("GitKosh:", err);

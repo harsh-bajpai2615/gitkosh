@@ -25,8 +25,11 @@ API = "https://api.github.com"
 
 
 def _ver(v: str):
+    # Pad to a fixed width so comparisons across "1.2" vs "1.2.0" are correct
+    # (an unequal-length tuple compare would call 1.2.0 "newer" than 1.2,
+    # causing a re-download loop, and miss 1.2 -> 1.2.0 updates).
     nums = re.findall(r"\d+", v or "")
-    return tuple(int(x) for x in nums[:3]) if nums else (0,)
+    return tuple(int(x) for x in (nums + ["0", "0", "0"])[:3])
 
 
 def check(current: Optional[str] = None) -> Optional[dict]:
@@ -80,12 +83,20 @@ def download_and_apply(url: str, log: Callable[[str], None] = lambda m: None) ->
         log("Update package had no .app inside.")
         return False
     script = tmp / "swap.sh"
+    # Swap without ever leaving the user with no app: stage the old bundle aside,
+    # move the new one in, and only then delete the backup. If the move fails for
+    # any reason (disk full, interrupted, permissions), roll the original back.
     script.write_text(
         "#!/bin/sh\n"
         f"PID={os.getpid()}\n"
         'while kill -0 "$PID" 2>/dev/null; do sleep 0.4; done\n'
-        f'rm -rf "{bundle}"\n'
-        f'mv "{new_app}" "{bundle}"\n'
+        f'BAK="{bundle}.bak"\n'
+        'rm -rf "$BAK"\n'
+        f'if mv "{bundle}" "$BAK" && mv "{new_app}" "{bundle}"; then\n'
+        '  rm -rf "$BAK"\n'
+        'else\n'
+        f'  [ -d "$BAK" ] && [ ! -d "{bundle}" ] && mv "$BAK" "{bundle}"\n'
+        'fi\n'
         f'xattr -dr com.apple.quarantine "{bundle}" 2>/dev/null\n'
         f'open "{bundle}"\n'
         f'rm -rf "{tmp}"\n'

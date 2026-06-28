@@ -26,7 +26,13 @@ def detect_codechef(session) -> str:
         s = session.requests_session("codechef.com")
         html = s.get("https://www.codechef.com/", timeout=30).text
         soup = BeautifulSoup(html, "html.parser")
-        a = soup.select_one('a[href^="/users/"]')
+        # Prefer the logged-in user's own link in the header/account menu — a bare
+        # `a[href^="/users/"]` would also match "top users"/ranking widgets on the
+        # homepage and detect the wrong handle.
+        a = soup.select_one(
+            'header a[href^="/users/"], nav a[href^="/users/"], '
+            '.user-name-box a[href^="/users/"], .m-nav__user a[href^="/users/"]'
+        ) or soup.select_one('a[href^="/users/"]')
         if a:
             return a["href"].rstrip("/").rsplit("/", 1)[-1]
     except Exception:  # noqa: BLE001
@@ -43,7 +49,9 @@ def detect_atcoder(session) -> str:
         if m:
             return m.group(1)
         soup = BeautifulSoup(html, "html.parser")
-        a = soup.select_one('a[href^="/users/"]')
+        # Scope to the navbar so we don't pick up a ranking/standings user link.
+        a = (soup.select_one('.navbar a[href^="/users/"], nav a[href^="/users/"]')
+             or soup.select_one('a[href^="/users/"]'))
         if a:
             return a["href"].rstrip("/").rsplit("/", 1)[-1]
     except Exception:  # noqa: BLE001

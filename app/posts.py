@@ -20,7 +20,7 @@ def _recent(items, days):
 def _facts(items, days):
     recent = _recent(items, days)
     pool = recent if recent else items
-    plats = sorted({LABELS.get(i.get("platform"), i.get("platform")) for i in pool})
+    plats = sorted({LABELS.get(i.get("platform"), i.get("platform") or "?") for i in pool})
     topics = [t for t, _ in Counter(t for i in pool for t in (i.get("tags") or [])).most_common(5)]
     titles = [i.get("title", "") for i in sorted(pool, key=lambda x: x.get("timestamp", 0), reverse=True)][:5]
     return {"recent_n": len(recent), "total": len(items), "platforms": plats,

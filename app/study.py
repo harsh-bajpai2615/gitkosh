@@ -35,7 +35,9 @@ def anki_tsv(items: list) -> str:
         back = i.get("approach", "") or "Open the solution to review your approach."
         if i.get("url"):
             back += f"<br><br><a href='{i['url']}'>Problem link</a>"
-        tags = " ".join(i.get("tags") or [])
+        # Anki splits tags on spaces, so collapse spaces within each tag (e.g.
+        # "Dynamic Programming" -> "Dynamic-Programming") before space-joining.
+        tags = " ".join(t.replace(" ", "-") for t in (i.get("tags") or []))
         lines.append(f"{_html(front)}\t{_html(back)}\t{tags}")
     return "\n".join(lines) + "\n"
 

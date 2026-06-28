@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 from gitkosh.readme_gen import ReadmeGenerator, parse_optimal
@@ -107,9 +107,11 @@ def read_last_run(state_dir):
 
 
 def _keep_streak(gh: GitHubAPI, log) -> bool:
-    today = date.today().isoformat()
+    # Use the UTC date to match how commits are backdated (_iso), so the streak
+    # entry lands on the same contribution-graph day near midnight.
+    today = datetime.now(timezone.utc).date().isoformat()
     prev = gh.get_file_text("activity/streak.md")
-    if today in prev:
+    if f"- {today}:" in prev:
         log(f"Streak already kept today ({today}).")
         return False
     line = f"- {today}: kept active (automatic)\n"
@@ -154,7 +156,10 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
     store = Store(state_dir)
     if reset:
         log("Reset: clearing local history and rebuilding the repo with real solve dates…")
-        store.clear()
+        # In-memory only: don't persist the wipe until the rebuilt push succeeds,
+        # otherwise a failed push leaves an empty store and the next sync re-pushes
+        # every problem as a duplicate.
+        store.clear(flush=False)
     logged = connected_platforms(state_dir)
 
     # discover

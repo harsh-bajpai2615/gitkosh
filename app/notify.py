@@ -8,7 +8,8 @@ import subprocess
 def notify(title: str, text: str) -> None:
     try:
         subprocess.run(
-            ["osascript", "-e", f"display notification {json.dumps(text)} with title {json.dumps(title)}"],
+            ["osascript", "-e", f"display notification {json.dumps(text, ensure_ascii=False)} "
+             f"with title {json.dumps(title, ensure_ascii=False)}"],
             timeout=10, check=False)
     except Exception:  # noqa: BLE001
         pass

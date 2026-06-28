@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from pathlib import Path
 from typing import Dict
 
@@ -30,9 +32,20 @@ class Store:
         return max(ts) if ts else 0
 
     def flush(self) -> None:
-        tmp = self.path.with_suffix(".tmp")
-        tmp.write_text(json.dumps(self._data, indent=2))
-        tmp.replace(self.path)
+        # Write to a unique temp file in the same dir, then atomically replace —
+        # a fixed temp name lets a concurrent run (GUI + scheduler) clobber the
+        # temp mid-write and lose data or raise FileNotFoundError on replace.
+        fd, tmp = tempfile.mkstemp(prefix="processed.", suffix=".tmp", dir=str(self.path.parent))
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(self._data, f, indent=2)
+            os.replace(tmp, self.path)
+        except Exception:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            raise
 
     def count(self) -> int:
         return len(self._data)
@@ -40,6 +53,11 @@ class Store:
     def all(self) -> list:
         return list(self._data.values())
 
-    def clear(self) -> None:
+    def clear(self, flush: bool = True) -> None:
+        # flush=False clears only the in-memory view (so a reset re-discovers
+        # everything) without persisting the wipe — callers can defer the on-disk
+        # clear until a push succeeds, so a failed reset doesn't lose the record
+        # and cause every problem to be re-pushed as a duplicate next run.
         self._data = {}
-        self.flush()
+        if flush:
+            self.flush()

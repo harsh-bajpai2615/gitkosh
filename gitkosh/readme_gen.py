@@ -7,7 +7,6 @@ LLM provider is pluggable — Gemini, Groq, or a local Ollama model via their HT
 from __future__ import annotations
 
 import os
-import textwrap
 import time
 from typing import TYPE_CHECKING
 
@@ -25,65 +24,70 @@ DEFAULT_MODELS = {
 
 def _prompt(sub: "Submission") -> str:
     statement = sub.statement[:6000] if sub.statement else "(statement not captured — infer from the code and title)"
-    return textwrap.dedent(f"""\
-        You are documenting a competitive-programming solution for a GitHub repo.
-        Write a README.md in GitHub-flavored Markdown for ONE problem.
+    # NOTE: this f-string is intentionally flush-left (no source indentation).
+    # textwrap.dedent() over an *interpolated* string is unsafe — the embedded
+    # source code carries its own indentation and skews the common-whitespace
+    # calculation, corrupting both the code block and the surrounding Markdown.
+    tags = ", ".join(sub.tags) if sub.tags else "(none)"
+    return f"""\
+You are documenting a competitive-programming solution for a GitHub repo.
+Write a README.md in GitHub-flavored Markdown for ONE problem.
 
-        Platform: {sub.platform}
-        Problem: {sub.title}
-        Difficulty/Rating: {sub.difficulty or "unknown"}
-        Tags: {", ".join(sub.tags) or "none"}
-        Link: {sub.url}
-        Language: {sub.lang}
+Platform: {sub.platform}
+Problem: {sub.title}
+Difficulty/Rating: {sub.difficulty or "unknown"}
+Tags: {", ".join(sub.tags) or "none"}
+Link: {sub.url}
+Language: {sub.lang}
 
-        Official statement (may be truncated):
-        ---
-        {statement}
-        ---
+Official statement (may be truncated):
+---
+{statement}
+---
 
-        My accepted solution:
-        ```{sub.ext}
-        {sub.code[:8000]}
-        ```
+My accepted solution:
+```{sub.ext}
+{sub.code[:8000]}
+```
 
-        FORMAT RULES (strict):
-        - Use ONLY Markdown headings and bullet/numbered lists. NO plain paragraphs anywhere.
-        - Every piece of information must be a bullet (-) or a numbered step.
-        - The Algorithm must be NUMBERED steps describing what MY code above actually does,
-          in order — concrete and specific to my solution, not a generic textbook method.
-        - Be accurate; do not invent constraints. Do not paste the source code.
+FORMAT RULES (strict):
+- Use ONLY Markdown headings and bullet/numbered lists. NO plain paragraphs anywhere.
+- Every piece of information must be a bullet (-) or a numbered step.
+- The Algorithm must be NUMBERED steps describing what MY code above actually does,
+  in order — concrete and specific to my solution, not a generic textbook method.
+- Be accurate; do not invent constraints. Do not paste the source code.
 
-        Produce EXACTLY this structure:
+Produce EXACTLY this structure:
 
-        # {sub.title}
+# {sub.title}
 
-        ## Problem
-        - (3-6 bullets: what's given, what's asked, key constraints)
+## Problem
+- (3-6 bullets: what's given, what's asked, key constraints)
 
-        ## Algorithm
-        1. (first concrete step my code takes)
-        2. (next step)
-        3. (... 5-12 numbered steps total, following my code's actual logic)
+## Algorithm
+1. (first concrete step my code takes)
+2. (next step)
+3. (... 5-12 numbered steps total, following my code's actual logic)
 
-        ## Complexity
-        - **Time:** O(...) — bullet reason
-        - **Space:** O(...) — bullet reason
+## Complexity
+- **Time:** O(...) — bullet reason
+- **Space:** O(...) — bullet reason
 
-        ## Key Insight
-        - (1-3 bullets: the trick/observation that makes the solution work)
+## Key Insight
+- (1-3 bullets: the trick/observation that makes the solution work)
 
-        ## Optimization
-        - (Honestly assess MY solution: is it optimal in time & space for this problem?)
-        - (If it is optimal, say so in one bullet.)
-        - (If it can be improved, give the better approach + its complexity in 1-3 bullets.)
+## Optimization
+- (Honestly assess MY solution: is it optimal in time & space for this problem?)
+- (If it is optimal, say so in one bullet.)
+- (If it can be improved, give the better approach + its complexity in 1-3 bullets.)
 
-        ## Tags
-        - {", ".join(sub.tags) if sub.tags else "(none)"}
+## Tags
+- {tags}
 
-        After the Tags section, on the VERY LAST line, output exactly one HTML comment verdict:
-        `<!-- gitkosh:optimal=yes -->` if my solution is already optimal, otherwise
-        `<!-- gitkosh:optimal=no -->`. Output nothing after that comment.
-        """)
+After the Tags section, on the VERY LAST line, output exactly one HTML comment verdict:
+`<!-- gitkosh:optimal=yes -->` if my solution is already optimal, otherwise
+`<!-- gitkosh:optimal=no -->`. Output nothing after that comment.
+"""
 
 
 def parse_optimal(readme: str):

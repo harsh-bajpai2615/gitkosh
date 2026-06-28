@@ -8,6 +8,7 @@ once (Settings -> Developer settings -> OAuth Apps -> enable "Device Flow").
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 from typing import Callable, Optional
@@ -44,7 +45,12 @@ def poll_for_token(client_id: str, device_code: str, interval: int = 5,
             "device_code": device_code,
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
         }, timeout=30)
-        d = r.json()
+        try:
+            d = r.json()
+        except ValueError:
+            # Transient 5xx / rate-limit can return an HTML body — keep polling
+            # rather than aborting the whole login.
+            continue
         if d.get("access_token"):
             return d["access_token"]
         err = d.get("error")
@@ -64,8 +70,12 @@ def _token_path(state_dir: Path) -> Path:
 
 def save_token(state_dir: Path, token: str, login: str) -> None:
     p = _token_path(state_dir)
-    p.write_text(json.dumps({"token": token, "login": login}))
-    p.chmod(0o600)
+    # Create with 0600 from the start so the repo-scope token is never briefly
+    # world-readable (the default umask would create it 0644 before chmod).
+    data = json.dumps({"token": token, "login": login})
+    fd = os.open(str(p), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(data)
 
 
 def load_github(state_dir: Path) -> Optional[dict]:
