@@ -6,6 +6,8 @@ the problem's repo dir (stable, unique). New (never-reviewed) cards count as due
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,7 +34,19 @@ def _load(state_dir):
 
 
 def _save(state_dir, d):
-    _path(state_dir).write_text(json.dumps(d, indent=2))
+    # Atomic write so concurrent GUI + scheduled-run saves can't corrupt review.json.
+    p = _path(state_dir)
+    fd, tmp = tempfile.mkstemp(dir=str(p.parent), prefix="review.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(d, f, indent=2)
+        os.replace(tmp, p)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def card_key(item):

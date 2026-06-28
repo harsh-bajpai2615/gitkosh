@@ -7,6 +7,7 @@ the GitHub API — there is no local git repo.
 from __future__ import annotations
 
 import os
+import tempfile
 from pathlib import Path
 
 import yaml
@@ -51,10 +52,37 @@ def load_config() -> dict:
     if not CONFIG_PATH.exists():
         save_config(DEFAULT_CONFIG)
         return _deep_merge(DEFAULT_CONFIG, {})
-    data = yaml.safe_load(CONFIG_PATH.read_text()) or {}
+    try:
+        data = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8")) or {}
+        if not isinstance(data, dict):
+            raise ValueError("config root is not a mapping")
+    except Exception as e:  # noqa: BLE001
+        # A corrupt config must NEVER brick the app — back it up and reset to
+        # defaults. (Logins/token live in separate files and are unaffected.)
+        try:
+            backup = CONFIG_PATH.with_name("config.corrupt.yaml")
+            CONFIG_PATH.replace(backup)
+            print(f"[GitKosh] config.yaml was unreadable ({e}); backed up to {backup}, using defaults.")
+        except OSError:
+            pass
+        save_config(DEFAULT_CONFIG)
+        return _deep_merge(DEFAULT_CONFIG, {})
     return _deep_merge(DEFAULT_CONFIG, data)
 
 
 def save_config(cfg: dict) -> None:
+    """Write config atomically (temp file + os.replace) so concurrent saves from
+    the UI bridge / scheduler can never interleave into a corrupt file."""
     ensure_dirs()
-    CONFIG_PATH.write_text(yaml.safe_dump(cfg, sort_keys=False))
+    text = yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True)
+    fd, tmp = tempfile.mkstemp(dir=str(APP_DIR), prefix="config.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.replace(tmp, CONFIG_PATH)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
