@@ -276,8 +276,8 @@ textarea{width:100%;margin-top:12px;background:rgba(0,0,0,.25);border:1px solid 
 .tchip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--mut)}
 .tchip.b75{background:rgba(124,92,252,.16);color:#c9bcff}
 .tchip.tested{background:rgba(52,211,153,.12);color:#7ef0c5}
-.lc{margin-left:auto;font-size:12px;font-weight:700;color:#9db4ff;text-decoration:none}
-.lc:hover{text-decoration:underline}
+a.lc{margin-left:auto;font-size:12px;font-weight:700;color:#9db4ff;text-decoration:none}
+a.lc:hover{text-decoration:underline}
 .statement{color:#cdd3e6;font-size:13.5px;line-height:1.6;margin:8px 0 2px}
 
 /* syntax-highlighted editor (transparent textarea over a highlighted <pre>) */

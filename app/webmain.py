@@ -239,11 +239,13 @@ class Api:
         save_config(cfg)
         try:
             _prog("Setting up local AI (Ollama)…", 5)
-            ollama_setup.setup(DEFAULT_MODELS["ollama"], progress=lambda m: _prog(m, 55))
-            # Pin to whatever actually got pulled, so requests never 404.
+            chosen = ollama_setup.setup(DEFAULT_MODELS["ollama"], progress=lambda m: _prog(m, 55))
+            # Pin config to the model that's actually available, so requests never 404.
             avail = ollama_setup.models()
-            if avail and llm["model"] not in avail:
-                llm["model"] = avail[0]
+            if chosen and chosen not in avail and f"{chosen}:latest" not in avail and avail:
+                chosen = avail[0]
+            if chosen and chosen != llm.get("model"):
+                llm["model"] = chosen
                 save_config(cfg)
             _prog("Local AI ready.", 100)
             return {"ok": True, "model": llm["model"]}
