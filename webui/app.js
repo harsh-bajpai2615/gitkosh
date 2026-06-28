@@ -137,10 +137,13 @@ function updateKeyField(provider, key) {
     } else if (provider === "none") {
       note.className = "provNote";
       note.innerHTML = "AI features (tutor, write-ups, quiz grading) are off. Pick <b>Ollama</b> to turn them on for free.";
+    } else if (provider === "groq") {
+      note.className = "provNote rec";
+      note.innerHTML = "<b>Groq — best for the mock interview &amp; voice.</b> Free &amp; fast (Llama&nbsp;3.3&nbsp;70B), far sharper than the small local model. " +
+        "Get a key in ~1 min:<br>1. Open <b>console.groq.com</b> → sign in (free).<br>2. <b>API Keys → Create API Key</b> → copy the <code>gsk_…</code> value.<br>3. Paste it below and <b>Save</b>.";
     } else {
       note.className = "provNote warn";
-      note.innerHTML = "⚠ Cloud keys work, but replies can be <b>slower</b> and may hit <b>rate limits</b> under heavy use. " +
-        "For the smoothest, private experience we recommend <b>Ollama</b> (free, local).";
+      note.innerHTML = "⚠ Gemini's free tier has a <b>low daily cap</b>. For a sharper interviewer and voice transcription, prefer <b>Groq</b> (free, fast) or <b>Ollama</b> (free, local).";
     }
   }
 }
