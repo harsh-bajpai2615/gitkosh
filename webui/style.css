@@ -328,3 +328,12 @@ a.lc:hover{text-decoration:underline}
 .md blockquote,.msg.bot blockquote{border-left:3px solid var(--acc);margin:8px 0;padding:3px 13px;color:var(--mut)}
 .md a,.msg.bot a{color:#9db4ff}
 .md strong,.msg.bot strong{color:#fff}
+
+/* ---- backfill: import past work ---- */
+.bf-preview{margin-top:12px;padding:12px;border:1px solid var(--bd,#2a2a3a);border-radius:10px;background:rgba(255,255,255,.02)}
+.bf-stat{font-size:13px;margin-bottom:4px}
+.bf-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+.bf-table th,.bf-table td{text-align:left;padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.06)}
+.bf-table th{color:var(--mut);font-weight:600}
+.bf-table td:last-child{text-align:right;color:var(--mut)}
+#bfPath{font-size:12px;word-break:break-all}

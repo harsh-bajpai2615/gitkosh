@@ -265,6 +265,40 @@ $("#btnPost").addEventListener("click", async () => { $("#postBox").value = "Gen
   $("#postBox").value = (r && r.post) || ""; if (!r || !r.post) toast("Couldn't generate a post — check your AI provider."); });
 $("#btnCopyEmbed").addEventListener("click", async () => {
   const md = await act("get_embed"); navigator.clipboard?.writeText(md || ""); toast("Embed code copied"); });
+
+/* ---------- backfill: import local past work (honest backdating) ---------- */
+let _bfPath = "";
+$("#btnPickFolder")?.addEventListener("click", async () => {
+  if (!api()) { toast("Folder import works inside GitKosh."); return; }
+  const p = await act("pick_folder");
+  if (!p) return;
+  _bfPath = p;
+  $("#bfPath").textContent = p;
+  const pv = $("#bfPreview"); pv.classList.remove("hidden");
+  pv.innerHTML = `<div class="muted">Scanning…</div>`;
+  $("#btnBackfill").classList.add("hidden");
+  const s = await act("backfill_preview", p);
+  if (!s || !s.ok || !s.total_files) {
+    pv.innerHTML = `<div class="muted">${esc((s && s.error) || "No importable text files found there.")}</div>`;
+    return;
+  }
+  const rows = (s.preview || []).map((r) => `<tr><td>${esc(r.date)}</td><td>${r.count}</td></tr>`).join("");
+  pv.innerHTML = `
+    <div class="bf-stat"><b>${s.total_files}</b> files · <b>${s.total_days}</b> day(s) · ${s.is_git ? "git dates" : "file dates"}${s.skipped ? " · " + s.skipped + " skipped" : ""}${s.capped ? " · capped" : ""}</div>
+    <div class="muted">${esc(s.oldest || "")} → ${esc(s.newest || "")}</div>
+    <table class="bf-table"><thead><tr><th>Day</th><th>Files → 1 commit</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="muted">Creates one backdated commit per day under <code>imports/${esc(s.name)}</code>.</div>`;
+  $("#btnBackfill").classList.remove("hidden");
+});
+$("#btnBackfill")?.addEventListener("click", async () => {
+  if (!_bfPath) return;
+  showProg();
+  try {
+    const r = await act("backfill_run", _bfPath);
+    if (r && r.ok) toast(`✓ Imported ${r.files} file(s) in ${r.commits} commit(s)`);
+    else toast("Import failed: " + ((r && r.error) || "unknown"));
+  } finally { setTimeout(() => $("#progWrap").classList.add("hidden"), 4000); }
+});
 $("#btnRefreshCard").addEventListener("click", renderCard);
 $("#btnRefreshContests").addEventListener("click", renderContests);
 $("#btnCopyResume").addEventListener("click", () => {

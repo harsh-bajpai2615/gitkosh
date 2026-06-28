@@ -16,8 +16,8 @@ import threading
 
 import webview
 
-from . import (coach, constants, gamify, github_auth, ollama_setup, patterns,
-               posts, problems, roadmap, runner, site, srs)
+from . import (backfill, coach, constants, gamify, github_auth, ollama_setup,
+               patterns, posts, problems, roadmap, runner, site, srs)
 from .appsupport import STATE_DIR, load_config, save_config
 from .cards import render_png
 from .contests import cf_rating, upcoming as cf_upcoming
@@ -347,9 +347,57 @@ class Api:
         _js("window.gkRefresh && window.gkRefresh()")
         return res
 
+    # ---- backfill: import a local folder's real past work onto the graph ----
+    def pick_folder(self):
+        """Native folder chooser. Returns the chosen absolute path or ''."""
+        try:
+            if not WINDOW:
+                return ""
+            res = WINDOW.create_file_dialog(webview.FOLDER_DIALOG)
+            if res:
+                return res[0] if isinstance(res, (list, tuple)) else res
+        except Exception:  # noqa: BLE001
+            pass
+        return ""
+
+    def backfill_preview(self, path):
+        if not path:
+            return {"ok": False, "error": "Pick a folder first."}
+        return backfill.summarize(backfill.scan(path))
+
+    def backfill_run(self, path):
+        gh_info = github_auth.load_github(STATE_DIR)
+        if not gh_info:
+            return {"ok": False, "error": "Connect GitHub first."}
+        cfg = load_config()
+        repo = (cfg.get("github") or {}).get("repo")
+        if not repo:
+            return {"ok": False, "error": "Set a destination repo in Setup first."}
+        _prog("Scanning your folder…", 8)
+        sc = backfill.scan(path)
+        if not sc.get("ok"):
+            return sc
+        if not sc["total_files"]:
+            return {"ok": False, "error": "No importable text files found in that folder."}
+        commits = backfill.build_commits(sc)
+        _prog(f"Importing {sc['total_files']} file(s) across {len(commits)} day(s)…", 30)
+        gh = GitHubAPI(gh_info["token"], repo, private=cfg["github"].get("private", True))
+        try:
+            gh.ensure_repo()
+            url = gh.push_commits(commits)  # layer onto history with the real dates
+        except Exception as e:  # noqa: BLE001
+            _prog(f"Import failed: {e}", 100)
+            return {"ok": False, "error": str(e)}
+        _prog(f"✓ Imported {sc['total_files']} file(s) in {len(commits)} dated commit(s).", 100)
+        _js("window.gkRefresh && window.gkRefresh()")
+        return {"ok": True, "files": sc["total_files"], "commits": len(commits), "url": url}
+
     def publish_site(self):
         cfg = load_config()
-        gh = GitHubAPI(github_auth.load_github(STATE_DIR)["token"], cfg["github"]["repo"],
+        gh_info = github_auth.load_github(STATE_DIR)
+        if not gh_info or not (cfg.get("github") or {}).get("repo"):
+            return None  # not connected / no repo — UI shows a hint
+        gh = GitHubAPI(gh_info["token"], cfg["github"]["repo"],
                        private=cfg["github"].get("private", True))
         gh.ensure_repo()
         owner, repo = gh._resolve()

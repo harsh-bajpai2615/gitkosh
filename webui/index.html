@@ -83,6 +83,21 @@
           <div class="progress hidden" id="progWrap"><div class="bar-bg"><div class="bar-fill" id="progBar"></div></div>
             <div class="muted" id="progText"></div></div>
         </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Import past work</h2></div>
+          <p class="muted">Archive a local project to your repo dated to when you <em>actually</em> wrote it —
+            from file timestamps (or real git dates). Honest backdating, never fabricated, so your
+            contribution graph reflects work you really did but never pushed.</p>
+          <div class="row">
+            <button class="btn" id="btnPickFolder">Choose folder…</button>
+            <span class="muted" id="bfPath">No folder selected</span>
+          </div>
+          <div id="bfPreview" class="bf-preview hidden"></div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn btn-accent hidden" id="btnBackfill">Import to GitHub</button>
+          </div>
+        </div>
       </section>
 
       <!-- SHOWCASE -->
