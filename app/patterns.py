@@ -49,5 +49,29 @@ PATTERNS = [
 ]
 
 
+# Map each library pattern to the LeetCode topic tag(s) that identify it, so a
+# "practice this pattern" drilldown can pull matching in-app problems.
+PATTERN_TOPICS = {
+    "Two Pointers": ["Two Pointers"],
+    "Sliding Window": ["Sliding Window"],
+    "Fast & Slow Pointers": ["Linked List"],
+    "Binary Search": ["Binary Search"],
+    "Hashing": ["Hash Table"],
+    "Stack / Monotonic Stack": ["Stack", "Monotonic Stack"],
+    "Heap / Top-K": ["Heap (Priority Queue)"],
+    "Backtracking": ["Backtracking"],
+    "BFS": ["Breadth-First Search"],
+    "DFS": ["Depth-First Search"],
+    "Dynamic Programming": ["Dynamic Programming"],
+    "Greedy": ["Greedy"],
+    "Intervals": ["Sorting"],  # LeetCode has no "Intervals" tag; sorting is the closest signal
+    "Union-Find": ["Union-Find"],
+}
+
+
+def topics_for_pattern(name: str) -> list:
+    return PATTERN_TOPICS.get(name, [])
+
+
 def listing():
     return PATTERNS

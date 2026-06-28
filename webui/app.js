@@ -1234,11 +1234,35 @@ function showPattern(i) {
   d.innerHTML = `<h3>${esc(p.name)}</h3><div><b>When:</b> ${esc(p.when)}</div>
     <div style="margin-top:6px"><b>Idea:</b> ${esc(p.idea)}</div>
     <div class="ex">${(p.examples || []).map((e) => `<span class="chip">${esc(e)}</span>`).join("")}</div>
-    <div style="margin-top:12px"><button class="btn sm btn-accent" id="askPat">Ask the tutor about this</button></div>`;
+    <div class="row" style="margin-top:12px">
+      <button class="btn sm btn-accent" id="drillPat">🧩 Practice this pattern</button>
+      <button class="btn sm" id="askPat">Ask the tutor about this</button>
+    </div>
+    <div id="patDrill"></div>`;
   $("#askPat").addEventListener("click", () => {
     $("#chat").scrollIntoView({ behavior: "smooth" });
     sendChat(`Explain the ${p.name} pattern with a simple example and when to use it.`);
   });
+  $("#drillPat").addEventListener("click", () => drillPattern(p.name));
+}
+async function drillPattern(name) {
+  const box = $("#patDrill");
+  if (!api()) { toast("Pattern practice runs inside GitKosh."); return; }
+  box.innerHTML = `<div class="muted" style="margin-top:10px">Finding problems…</div>`;
+  const r = await act("pattern_problems", name);
+  if (!r || !r.ok || !r.total) { box.innerHTML = `<div class="muted" style="margin-top:10px">${esc((r && r.error) || "No in-app problems for this pattern yet.")}</div>`; return; }
+  const rows = r.problems.map((q) => {
+    const dc = q.difficulty === "Easy" ? "easy" : q.difficulty === "Hard" ? "hard" : "med";
+    const status = q.solved ? `<span class="solved">✓</span>` : "";
+    return `<div class="drill-item">
+      <span class="co-dchip ${dc}">${esc(q.difficulty || "")}</span>
+      <a href="#" class="drill-open" data-pid="${esc(q.slug)}">${esc(q.title)}</a>
+      ${q.tested ? '<span class="co-dchip" style="background:rgba(124,92,252,.16);color:#b9a7ff">auto-tested</span>' : ""}
+      <span class="drill-status">${status}</span></div>`;
+  }).join("");
+  box.innerHTML = `<div class="drill-head">${r.solved}/${r.total} solved · all open in the in-app editor</div>
+    <div class="drill-list">${rows}</div>`;
+  $$("#patDrill .drill-open").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openInApp(a.dataset.pid); }));
 }
 
 /* sorting visualizer */
@@ -1349,6 +1373,27 @@ function boot() {
   const item = (t && $(`.nav-item[data-tab="${t}"]`)) || $(".nav-item.active");
   if (item) { if (t) switchTab(t, item); else moveNavPill(item); }
   maybeWelcome();
+  reviewNudge();
+}
+// On launch, nudge the user if spaced-repetition reviews are due.
+let _reviewNudged = false;
+async function reviewNudge() {
+  if (_reviewNudged || !api()) return;
+  _reviewNudged = true;
+  const st = await act("review_status");
+  const b = $("#reviewBanner");
+  if (!st || !st.due || !b) return;
+  $("#reviewBannerText").textContent =
+    `🔁 ${st.due} problem${st.due > 1 ? "s" : ""} due for review` +
+    (st.review_streak ? ` · keep your ${st.review_streak}-day review streak alive` : "");
+  b.classList.remove("hidden");
+  $("#reviewBannerGo").onclick = () => {
+    b.classList.add("hidden");
+    const nav = $$(".nav-item").find((x) => x.dataset.tab === "practice");
+    if (nav) switchTab("practice", nav);
+    setTimeout(startQuiz, 200);
+  };
+  $("#reviewBannerX").onclick = () => b.classList.add("hidden");
 }
 // Always boot once the DOM is parsed — pywebview can inject its bridge before the
 // document finishes loading, so guarding on `window.pywebview` alone can run boot()

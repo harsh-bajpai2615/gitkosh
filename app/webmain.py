@@ -743,11 +743,32 @@ class Api:
             save_config(cfg)
         return True
 
+    def review_status(self):
+        """Lightweight SRS counts for the launch review nudge."""
+        return srs.stats(_items(), STATE_DIR)
+
     def get_gamify(self):
         return gamify.compute(_items(), STATE_DIR)
 
     def get_patterns(self):
         return patterns.listing()
+
+    def pattern_problems(self, name):
+        """In-app catalog problems matching a library pattern (for drilldown)."""
+        topics = set(patterns.topics_for_pattern(name))
+        if not topics:
+            return {"ok": False, "error": "No problems mapped for this pattern."}
+        solved = _solved_leetcode_slugs()
+        order = {"Easy": 0, "Medium": 1, "Hard": 2}
+        out = []
+        for p in problems.listing():
+            slug = p["id"]
+            if topics & set(companies.topics_for(slug)):
+                out.append({"slug": slug, "title": p["title"], "difficulty": p["difficulty"],
+                            "tested": bool(p.get("tested")), "solved": slug in solved})
+        out.sort(key=lambda x: (order.get(x["difficulty"], 9), x["title"]))
+        return {"ok": True, "pattern": name, "topics": sorted(topics), "problems": out,
+                "total": len(out), "solved": sum(1 for x in out if x["solved"])}
 
     def list_problems(self):
         return problems.listing()
