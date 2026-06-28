@@ -15,6 +15,7 @@ from __future__ import annotations
 import os
 import subprocess
 import tempfile
+import threading
 import time
 
 _recorder = None
@@ -125,46 +126,57 @@ def stop_and_transcribe(groq_key: str = "") -> dict:
 
 # ---------- transcription engines ----------
 def _transcribe_ondevice(path: str, timeout: int = 45) -> str | None:
+    """Transcribe on-device. The Speech framework (auth prompt + recognitionTask
+    callbacks) must run on the main thread, but the JS bridge calls us on a worker
+    thread — so we hop the work onto the main queue and block here on an Event until
+    the main run loop (the live UI loop) delivers the result."""
     import Foundation
     import Speech
 
-    status = Speech.SFSpeechRecognizer.authorizationStatus()
-    if status != 3:  # 0=notDetermined 1=denied 2=restricted 3=authorized
-        box = {}
-        Speech.SFSpeechRecognizer.requestAuthorization_(lambda s: box.__setitem__("s", s))
-        rl, deadline = Foundation.NSRunLoop.currentRunLoop(), time.time() + 6
-        while "s" not in box and time.time() < deadline:
-            rl.runUntilDate_(Foundation.NSDate.dateWithTimeIntervalSinceNow_(0.1))
-        status = box.get("s", Speech.SFSpeechRecognizer.authorizationStatus())
-    if status != 3:
-        return None
+    box = {"text": None}
+    done = threading.Event()
 
-    rec = Speech.SFSpeechRecognizer.alloc().initWithLocale_(
-        Foundation.NSLocale.localeWithLocaleIdentifier_("en-US"))
-    if rec is None or not rec.isAvailable():
-        return None
-    url = Foundation.NSURL.fileURLWithPath_(path)
-    req = Speech.SFSpeechURLRecognitionRequest.alloc().initWithURL_(url)
-    try:
-        if rec.supportsOnDeviceRecognition():
-            req.setRequiresOnDeviceRecognition_(True)
-    except Exception:  # noqa: BLE001
-        pass
+    def start_recognition():
+        try:
+            rec = Speech.SFSpeechRecognizer.alloc().initWithLocale_(
+                Foundation.NSLocale.localeWithLocaleIdentifier_("en-US"))
+            if rec is None or not rec.isAvailable():
+                done.set()
+                return
+            url = Foundation.NSURL.fileURLWithPath_(path)
+            req = Speech.SFSpeechURLRecognitionRequest.alloc().initWithURL_(url)
+            try:
+                if rec.supportsOnDeviceRecognition():
+                    req.setRequiresOnDeviceRecognition_(True)
+            except Exception:  # noqa: BLE001
+                pass
 
-    out = {}
-    def handler(result, error):
-        if error is not None:
-            out["done"] = True
-            return
-        if result is not None:
-            out["text"] = result.bestTranscription().formattedString()
-            if result.isFinal():
-                out["done"] = True
-    rec.recognitionTaskWithRequest_resultHandler_(req, handler)
-    rl, deadline = Foundation.NSRunLoop.currentRunLoop(), time.time() + timeout
-    while not out.get("done") and time.time() < deadline:
-        rl.runUntilDate_(Foundation.NSDate.dateWithTimeIntervalSinceNow_(0.1))
-    return (out.get("text") or "").strip() or None
+            def handler(result, error):
+                if error is not None:
+                    done.set()
+                    return
+                if result is not None:
+                    box["text"] = result.bestTranscription().formattedString()
+                    if result.isFinal():
+                        done.set()
+            rec.recognitionTaskWithRequest_resultHandler_(req, handler)
+        except Exception:  # noqa: BLE001
+            done.set()
+
+    def on_main():
+        st = Speech.SFSpeechRecognizer.authorizationStatus()
+        if st == 3:                      # authorized
+            start_recognition()
+        elif st in (1, 2):               # denied / restricted
+            done.set()
+        else:                            # not determined → prompt (on main), then proceed
+            def authcb(status):
+                start_recognition() if status == 3 else done.set()
+            Speech.SFSpeechRecognizer.requestAuthorization_(authcb)
+
+    Foundation.NSOperationQueue.mainQueue().addOperationWithBlock_(on_main)
+    done.wait(timeout)
+    return (box.get("text") or "").strip() or None
 
 
 def _transcribe_groq(path: str, api_key: str) -> str | None:
