@@ -7,7 +7,7 @@ output_repo: ~/competitive-programming
 github:
   # Remote to push to. If create_if_missing is true and the repo doesn't
   # exist, it is created with `gh` using this name + visibility.
-  repo: harsh-bajpai2615/competitive-programming
+  repo: your-username/competitive-programming
   create_if_missing: true
   visibility: private          # private | public
   push: true                   # set false to commit locally without pushing
