@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .dashboard import _d, _streaks, LABELS
 
-# palette (dark card — looks good on light & dark READMEs)
+# palette (dark card: looks good on light & dark READMEs)
 BG_TOP = (32, 36, 58)
 BG_BOT = (18, 20, 28)
 BORDER = (42, 47, 62)
@@ -97,7 +97,7 @@ def render_png(items: list, username: str = "", subtitle: str = "Competitive Pro
     d.text((tx, ly + 2), username or "your profile", font=_font(26, True), fill=INK)
     d.text((tx, ly + 34), subtitle, font=_font(15), fill=MUTED)
 
-    # streak pill (top-right) — drawn flame dot instead of emoji (Pillow has no color emoji)
+    # streak pill (top-right): drawn flame dot instead of emoji (Pillow has no color emoji)
     if cur:
         ftxt = f"{cur}-day streak"
         fp = _font(15, True)

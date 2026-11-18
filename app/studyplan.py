@@ -1,4 +1,4 @@
-"""Auto study plan — turn a company / target / saved question list into a dated schedule.
+"""Auto study plan: turn a company / target / saved question list into a dated schedule.
 
 Distributes the highest-priority unsolved questions across N weeks with a balanced
 mix of difficulties each day, so a student gets a concrete daily target instead of a

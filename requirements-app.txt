@@ -1,4 +1,4 @@
-# Dependencies to BUILD and RUN the macOS app (no Playwright — native WebKit login).
+# Dependencies to BUILD and RUN the macOS app (no Playwright: native WebKit login).
 requests>=2.31
 beautifulsoup4>=4.12
 html2text>=2024.2.26

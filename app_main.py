@@ -3,7 +3,7 @@
 
 Normally launches the Tkinter control panel. When relaunched with
 GITKOSH_ROLE=login (the GUI does this to show the native WebKit login window),
-it runs the login helper instead — a separate process avoids the
+it runs the login helper instead, a separate process avoids the
 AppKit/Tkinter run-loop conflict.
 """
 import os

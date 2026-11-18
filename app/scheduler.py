@@ -1,7 +1,7 @@
 """Daily background scheduling via a macOS LaunchAgent.
 
 Writes ~/Library/LaunchAgents/<LABEL>.plist that launchd runs every day at a set
-time — even when GitKosh isn't open, no human prompt. The agent launches the app
+time: even when GitKosh isn't open, no human prompt. The agent launches the app
 binary with GITKOSH_ROLE=sync (handled in app_main.py) to run a headless sync.
 """
 from __future__ import annotations

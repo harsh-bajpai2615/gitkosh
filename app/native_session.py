@@ -2,7 +2,7 @@
 
 Implements the same surface the extractors call (requests_session / cookie /
 browser_fetch / close), reading the same storage_state.json the Playwright
-Session writes — so the platform extractors are reused unchanged. There is no
+Session writes: so the platform extractors are reused unchanged. There is no
 real browser here, so browser_fetch degrades to a plain requests GET (good
 enough for Codeforces source pages; CodeChef's Cloudflare pages may miss).
 """

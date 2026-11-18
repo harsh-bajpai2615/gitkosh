@@ -1,7 +1,7 @@
 """Tiny local code runner for in-app practice.
 
 Runs the user's code in a subprocess with a timeout and captures output. It's
-their own code on their own machine (like a local IDE), so no sandbox — but we
+their own code on their own machine (like a local IDE), so no sandbox, but we
 cap time and never touch the network.
 
 Python runs out of the box (it ships with the app). C++, Java and JavaScript use
@@ -82,7 +82,7 @@ def run_python(code: str, stdin: str = "", timeout: int = 6) -> dict:
                            text=True, encoding="utf-8", errors="replace", timeout=timeout)
         return _result(p.returncode == 0, p.stdout, p.stderr, round((time.time() - t0) * 1000))
     except subprocess.TimeoutExpired:
-        return _result(False, stderr=f"⏱ Time limit exceeded ({timeout}s)", ms=timeout * 1000)
+        return _result(False, stderr=f"Time limit exceeded ({timeout}s)", ms=timeout * 1000)
     except Exception as e:  # noqa: BLE001
         return _result(False, stderr=str(e))
     finally:
@@ -100,8 +100,8 @@ def _exec(argv, stdin, timeout, cwd=None):
                            encoding="utf-8", errors="replace", timeout=timeout, cwd=cwd)
         return _result(p.returncode == 0, p.stdout, p.stderr, round((time.time() - t0) * 1000))
     except subprocess.TimeoutExpired:
-        return _result(False, stderr=f"⏱ Time limit exceeded ({timeout}s)", ms=timeout * 1000)
-    except Exception as e:  # noqa: BLE001 — never let a launch failure reach the bridge as null
+        return _result(False, stderr=f"Time limit exceeded ({timeout}s)", ms=timeout * 1000)
+    except Exception as e:  # noqa: BLE001: never let a launch failure reach the bridge as null
         return _result(False, stderr=str(e))
 
 
@@ -130,7 +130,7 @@ def _run_cpp(code, stdin, timeout):
                                capture_output=True, text=True, encoding="utf-8",
                                errors="replace", timeout=_COMPILE_TIMEOUT)
         except subprocess.TimeoutExpired:
-            return _result(False, stderr=f"⏱ Compilation timed out ({_COMPILE_TIMEOUT}s)")
+            return _result(False, stderr=f"Compilation timed out ({_COMPILE_TIMEOUT}s)")
         if c.returncode != 0:
             return _result(False, stderr="Compilation failed:\n" + (c.stderr or c.stdout))
         return _exec([exe], stdin, timeout)
@@ -149,7 +149,7 @@ def _run_java(code, stdin, timeout):
             c = subprocess.run([javac, src], capture_output=True, text=True,
                                encoding="utf-8", errors="replace", timeout=_COMPILE_TIMEOUT, cwd=d)
         except subprocess.TimeoutExpired:
-            return _result(False, stderr=f"⏱ Compilation timed out ({_COMPILE_TIMEOUT}s)")
+            return _result(False, stderr=f"Compilation timed out ({_COMPILE_TIMEOUT}s)")
         if c.returncode != 0:
             return _result(False, stderr="Compilation failed:\n" + (c.stderr or c.stdout))
         return _exec([java, "-cp", d, cls], stdin, timeout, cwd=d)

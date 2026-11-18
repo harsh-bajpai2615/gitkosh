@@ -80,7 +80,7 @@ class LeetCode(Platform):
                 timeout=30,
             )
             if r.status_code == 403:
-                raise RuntimeError("LeetCode returned 403 — session expired? Re-run `gitkosh login`.")
+                raise RuntimeError("LeetCode returned 403: session expired? Re-run `gitkosh login`.")
             r.raise_for_status()
             data = r.json()
             dump = data.get("submissions_dump", [])

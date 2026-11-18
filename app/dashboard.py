@@ -65,7 +65,7 @@ def render(items: list, repo_slug: str = "") -> str:
     last = max(days) if days else None
 
     out = []
-    out.append("# 🧩 Competitive Programming\n")
+    out.append("# Competitive Programming\n")
     out.append(f"> **{total}** solutions, auto-synced from "
                f"{', '.join(LABELS.get(p, p) for p in plat)} by "
                f"[GitKosh](https://github.com/harsh-bajpai2615/gitkosh).\n")
@@ -73,8 +73,8 @@ def render(items: list, repo_slug: str = "") -> str:
     # headline stats
     out.append("| Solved | Current streak | Longest streak | Active days | Last solved |")
     out.append("|:--:|:--:|:--:|:--:|:--:|")
-    out.append(f"| **{total}** | 🔥 {cur} day{'s' if cur != 1 else ''} | {longest} day{'s' if longest != 1 else ''} "
-               f"| {len(set(days))} | {last.isoformat() if last else '—'} |\n")
+    out.append(f"| **{total}** | {cur} day{'s' if cur != 1 else ''} | {longest} day{'s' if longest != 1 else ''} "
+               f"| {len(set(days))} | {last.isoformat() if last else '-'} |\n")
 
     # by platform
     out.append("### By platform\n")
@@ -104,7 +104,7 @@ def render(items: list, repo_slug: str = "") -> str:
         out.append(" · ".join(f"`{t}` {n}" for t, n in tags.most_common(15)))
         out.append("")
 
-    # browse by topic — the interview-prep "patterns" view
+    # browse by topic, the interview-prep "patterns" view
     if tags:
         out.append("## Browse by topic\n")
         for t, n in tags.most_common(20):
@@ -113,7 +113,7 @@ def render(items: list, repo_slug: str = "") -> str:
             out.append(f"<details><summary><b>{t}</b> ({n})</summary>\n")
             for i in rows:
                 d = i.get("dir")
-                title = i.get("title", "—")
+                title = i.get("title", "-")
                 out.append(f"- [{title}](./{d})" if d else f"- {title}")
             out.append("\n</details>\n")
 
@@ -126,12 +126,12 @@ def render(items: list, repo_slug: str = "") -> str:
         out.append("| Problem | Difficulty | Language | Solved |")
         out.append("|:--|:--:|:--:|:--:|")
         for i in rows:
-            title = i.get("title", "—")
+            title = i.get("title", "-")
             d = i.get("dir")
             name = f"[{title}](./{d})" if d else title
             dt = _d(i.get("timestamp"))
-            out.append(f"| {name} | {i.get('difficulty', '') or '—'} | {i.get('lang', '') or '—'} "
-                       f"| {dt.isoformat() if dt else '—'} |")
+            out.append(f"| {name} | {i.get('difficulty', '') or '-'} | {i.get('lang', '') or '-'} "
+                       f"| {dt.isoformat() if dt else '-'} |")
         out.append("\n</details>\n")
 
     out.append("---")

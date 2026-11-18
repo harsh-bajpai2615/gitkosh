@@ -1,4 +1,4 @@
-"""Gamification — XP, levels, and achievement badges derived from your activity.
+"""Gamification. XP, levels, and achievement badges derived from your activity.
 Keeps students motivated. All computed from existing data (no extra storage)."""
 from __future__ import annotations
 

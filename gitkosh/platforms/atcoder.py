@@ -1,6 +1,6 @@
 """AtCoder extractor.
 
-Submission list via the public AtCoder Problems API (kenkoooo, v3 — paginated by
+Submission list via the public AtCoder Problems API (kenkoooo, v3: paginated by
 from_second, ≥1s between calls). Source code is scraped from each submission page
 (`#submission-code`) using your logged-in session. Statement best-effort from the
 task page. Needs your AtCoder handle (auto-detected from the session).

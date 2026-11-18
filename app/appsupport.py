@@ -2,7 +2,7 @@
 
 Everything lives under ~/Library/Application Support/GitKosh. The app is a
 mediator: it holds session cookies (CP sites) + a GitHub token, and pushes via
-the GitHub API — there is no local git repo.
+the GitHub API, there is no local git repo.
 """
 from __future__ import annotations
 
@@ -60,7 +60,7 @@ def load_config() -> dict:
         if not isinstance(data, dict):
             raise ValueError("config root is not a mapping")
     except Exception as e:  # noqa: BLE001
-        # A corrupt config must NEVER brick the app — back it up and reset to
+        # A corrupt config must NEVER brick the app, back it up and reset to
         # defaults. (Logins/token live in separate files and are unaffected.)
         try:
             backup = CONFIG_PATH.with_name("config.corrupt.yaml")

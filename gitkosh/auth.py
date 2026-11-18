@@ -47,7 +47,7 @@ class Session:
         """Open a browser, let the user log into each platform, then save cookies.
 
         For platforms with a known auth-cookie marker (leetcode/neetcode) login is
-        auto-detected by polling — no terminal Enter needed, so this works when
+        auto-detected by polling, no terminal Enter needed, so this works when
         launched via `!`. For the others we ask for an Enter press when a TTY exists.
         """
         from playwright.sync_api import sync_playwright
@@ -113,7 +113,7 @@ class Session:
                     continue
                 if any(c["name"] == name and dom in c.get("domain", "") and c.get("value") for c in cookies):
                     done.add(p)
-                    print(f"  ✓ {p} logged in")
+                    print(f"  {p} logged in")
             time.sleep(2)
         missing = [p for p in wanted if p not in done]
         if missing:

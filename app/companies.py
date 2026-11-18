@@ -51,7 +51,7 @@ _topic_totals = None
 
 
 def topic_totals() -> dict:
-    """How many LeetCode problems carry each topic tag — denominator for coverage."""
+    """How many LeetCode problems carry each topic tag, denominator for coverage."""
     global _topic_totals
     if _topic_totals is None:
         topics_for("")  # ensure the map is loaded
@@ -153,7 +153,7 @@ def fetch(company, period, cache_dir) -> dict:
     rows, used = _download(company, period)
     if rows is None and period != "all":  # window missing for this company
         rows, used = _download(company, "all")
-    if rows is None:  # network failure — stale cache beats nothing
+    if rows is None:  # network failure: stale cache beats nothing
         if cp.exists():
             try:
                 return {"ok": True, **json.loads(cp.read_text(encoding="utf-8"))}

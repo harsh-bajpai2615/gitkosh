@@ -1,6 +1,6 @@
 """Import a local folder's REAL past work onto your GitHub contribution graph.
 
-Honest backdating only: every commit is dated to when the work actually happened —
+Honest backdating only: every commit is dated to when the work actually happened,
 the file's real modification time, or (for a git repo) the real author date of the
 commit that last touched it. This surfaces work you genuinely did but never pushed.
 It is NOT a fabricated-history generator: dates come from your filesystem/git, are
@@ -52,7 +52,7 @@ def _is_probably_text(path: Path) -> bool:
             chunk = f.read(_TEXT_SAMPLE)
     except OSError:
         return False
-    return b"\x00" not in chunk  # NUL byte ⇒ binary
+    return b"\x00" not in chunk  # NUL byte -> binary
 
 
 def _git_file_dates(root: Path) -> dict:
@@ -69,7 +69,7 @@ def _git_file_dates(root: Path) -> dict:
         return out
     # Output per commit: a %at timestamp line, then its changed files, then a blank
     # separator. Track position (the first line after a blank is the timestamp) rather
-    # than guessing by isdigit() — a file literally named "123456789" must not be read
+    # than guessing by isdigit(): a file literally named "123456789" must not be read
     # as a timestamp.
     cur_ts = None
     expect_ts = True
@@ -91,7 +91,7 @@ def _git_file_dates(root: Path) -> dict:
 def scan(path: str) -> dict:
     """Walk `path`, grouping authored text files by the UTC day they were last worked
     on. Returns {ok, name, root, buckets, total_files, total_days, skipped, oldest,
-    newest, capped} — buckets maps day -> [{rel, abs, ts, size}]."""
+    newest, capped}: buckets maps day -> [{rel, abs, ts, size}]."""
     root = Path(path).expanduser()
     try:
         root = root.resolve()
@@ -178,7 +178,7 @@ def summarize(scan_result: dict, sample: int = 12) -> dict:
 
 
 def build_commits(scan_result: dict, dest_prefix: str = None) -> list:
-    """Turn a scan into push_commits() input — one backdated commit per day."""
+    """Turn a scan into push_commits() input: one backdated commit per day."""
     if not scan_result.get("ok"):
         return []
     name = scan_result["name"]
@@ -199,7 +199,7 @@ def build_commits(scan_result: dict, dest_prefix: str = None) -> list:
             n = len(files)
             commits.append({
                 "files": files,
-                "message": f"import: {name} — {day} ({n} file{'s' if n != 1 else ''})",
+                "message": f"import: {name}, {day} ({n} file{'s' if n != 1 else ''})",
                 "date": _iso(latest),
             })
     return commits

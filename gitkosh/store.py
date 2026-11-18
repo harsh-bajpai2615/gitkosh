@@ -32,7 +32,7 @@ class Store:
         return max(ts) if ts else 0
 
     def flush(self) -> None:
-        # Write to a unique temp file in the same dir, then atomically replace —
+        # Write to a unique temp file in the same dir, then atomically replace,
         # a fixed temp name lets a concurrent run (GUI + scheduler) clobber the
         # temp mid-write and lose data or raise FileNotFoundError on replace.
         fd, tmp = tempfile.mkstemp(prefix="processed.", suffix=".tmp", dir=str(self.path.parent))
@@ -55,7 +55,7 @@ class Store:
 
     def clear(self, flush: bool = True) -> None:
         # flush=False clears only the in-memory view (so a reset re-discovers
-        # everything) without persisting the wipe — callers can defer the on-disk
+        # everything) without persisting the wipe, callers can defer the on-disk
         # clear until a push succeeds, so a failed reset doesn't lose the record
         # and cause every problem to be re-pushed as a duplicate next run.
         self._data = {}

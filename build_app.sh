@@ -16,7 +16,7 @@ if [ -n "$PYORG" ]; then
 else
   BASEPY="$(command -v python3)"
   echo "!! python.org framework Python not found in /Library/Frameworks."
-  echo "!! Falling back to $BASEPY — bundle may be less portable across Macs."
+  echo "!! Falling back to $BASEPY, bundle may be less portable across Macs."
 fi
 
 VENV=".venv-app"
@@ -37,7 +37,7 @@ APP="dist/gitkosh.app"
 [ -d "$APP" ] || { echo "Build failed: $APP not found"; exit 1; }
 echo "==> Built $APP"
 
-echo "==> Ad-hoc signing (free — makes it run reliably, esp. on Apple Silicon)"
+echo "==> Ad-hoc signing (free: makes it run reliably, esp. on Apple Silicon)"
 # Not notarization: the app still needs a one-time right-click->Open on other Macs.
 codesign --force --deep --sign - "$APP" && codesign --verify --deep "$APP" \
   && echo "  ad-hoc signature OK" || echo "  (ad-hoc signing skipped/failed; continuing)"

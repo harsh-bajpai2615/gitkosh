@@ -54,7 +54,7 @@
         <div class="grid">
           <div class="card glow">
             <div class="card-head"><h2>GitHub</h2><span class="badge" id="ghBadge">checking…</span></div>
-            <p class="muted">Step 1 — connect GitHub first.</p>
+            <p class="muted">Step 1: connect GitHub first.</p>
             <button class="btn btn-accent" id="btnGithub">Connect GitHub</button>
           </div>
 
@@ -62,11 +62,11 @@
             <div class="card-head"><h2>AI engine</h2></div>
             <p class="muted">Powers your write-ups, the DSA tutor, quiz grading & coaching.</p>
             <div class="seg" id="providerSeg">
-              <button data-v="ollama" class="on">Ollama ★</button><button data-v="gemini">Gemini</button>
+              <button data-v="ollama" class="on">Ollama</button><button data-v="gemini">Gemini</button>
               <button data-v="groq">Groq</button><button data-v="none">None</button>
             </div>
             <div class="provNote rec" id="provNote">
-              <b>Ollama — recommended.</b> Free, fully local & private — the best experience on a Mac.
+              <b>Ollama: recommended.</b> Free, fully local & private, the best experience on a Mac.
               The first reply downloads the model, so give it a few seconds.</div>
             <div class="keywrap hidden" id="keyWrap">
               <input id="apiKey" type="password" placeholder="Paste your API key">
@@ -74,7 +74,7 @@
             </div>
             <div class="muted hidden" id="keyHint" style="margin:10px 0 0">
               Free keys: aistudio.google.com/apikey · console.groq.com</div>
-            <div class="iv-engine-hint">🎤 Want a sharper <b>mock interviewer</b> without changing this engine? You can use <b>Groq just for interviews &amp; voice</b> — set it up in the <b>Interview</b> tab. Your main engine here stays free/local.</div>
+            <div class="iv-engine-hint">Want a sharper <b>mock interviewer</b> without changing this engine? You can use <b>Groq just for interviews &amp; voice</b>: set it up in the <b>Interview</b> tab. Your main engine here stays free/local.</div>
           </div>
         </div>
 
@@ -95,7 +95,7 @@
 
         <div class="card">
           <div class="card-head"><h2>Import past work</h2></div>
-          <p class="muted">Archive a local project to your repo dated to when you <em>actually</em> wrote it —
+          <p class="muted">Archive a local project to your repo dated to when you <em>actually</em> wrote it,
             from file timestamps (or real git dates). Honest backdating, never fabricated, so your
             contribution graph reflects work you really did but never pushed.</p>
           <div class="row">
@@ -170,7 +170,7 @@
         <header class="hero"><h1>Practice</h1><p>What to do next, your roadmap progress, and spaced-repetition review.</p></header>
         <div class="grid">
           <div class="card glow">
-            <div class="card-head"><h2>Today</h2><span class="badge" id="dueBadge">—</span></div>
+            <div class="card-head"><h2>Today</h2><span class="badge" id="dueBadge">-</span></div>
             <div id="potd"></div>
           </div>
           <div class="card">
@@ -194,7 +194,7 @@
 
       <!-- LEARN -->
       <section class="page" id="page-learn">
-        <header class="hero"><h1>Learn &amp; Solve</h1><p>Practice the full NeetCode 150 + Blind 75 right here — run, test &amp; get AI review. Ask the tutor anything.</p></header>
+        <header class="hero"><h1>Learn &amp; Solve</h1><p>Practice the full NeetCode 150 + Blind 75 right here, run, test &amp; get AI review. Ask the tutor anything.</p></header>
         <div class="card">
           <div class="card-head">
             <h2>Solve <span class="count" id="probCount"></span></h2>
@@ -210,9 +210,9 @@
           <div id="stdinWrap" class="hidden"><input id="stdin" class="stdin" placeholder="Custom input (stdin)…"></div>
           <div class="row" style="margin-top:10px">
             <select id="langSelect" class="sel sm" title="Run language"></select>
-            <button class="btn btn-accent" id="runBtn">▶ Run</button>
+            <button class="btn btn-accent" id="runBtn">Run</button>
             <button class="btn" id="testBtn">Run tests</button>
-            <button class="btn btn-ai" id="reviewBtn">✨ AI Review</button>
+            <button class="btn btn-ai" id="reviewBtn">AI Review</button>
             <button class="btn ghost sm" id="resetBtn">Reset</button>
             <span id="runStatus" class="runstatus"></span>
           </div>
@@ -240,7 +240,7 @@
             <select id="vizAlgo" class="sel"><option value="bubble">Bubble sort</option><option value="insertion">Insertion sort</option><option value="selection">Selection sort</option><option value="quick">Quick sort</option></select>
           </div>
           <canvas id="vizCanvas" class="viz"></canvas>
-          <div class="row" style="margin-top:10px"><button class="btn btn-accent" id="vizPlay">▶ Play</button><button class="btn" id="vizStop" disabled>■ Stop</button><button class="btn" id="vizShuffle">Shuffle</button></div>
+          <div class="row" style="margin-top:10px"><button class="btn btn-accent" id="vizPlay">Play</button><button class="btn" id="vizStop" disabled>Stop</button><button class="btn" id="vizShuffle">Shuffle</button></div>
         </div>
       </section>
 
@@ -251,19 +251,19 @@
           <div class="card-head"><h2>Start a session</h2></div>
           <div class="row">
             <select id="ivProblem" class="sel wide"></select>
-            <button class="btn" id="ivRandom" title="Pick a random problem">🎲 Random</button>
+            <button class="btn" id="ivRandom" title="Pick a random problem">Random</button>
           </div>
           <div class="row" style="margin-top:10px">
-            <button class="btn btn-accent" id="ivStart">▶ Start interview</button>
+            <button class="btn btn-accent" id="ivStart">Start interview</button>
           </div>
 
           <div class="iv-engine">
-            <label class="co-check"><input type="checkbox" id="ivUseGroq"> 🎤 Use <b>Groq</b> for a sharper interviewer &amp; accurate voice <span class="muted">(recommended — used only here)</span></label>
+            <label class="co-check"><input type="checkbox" id="ivUseGroq"> Use <b>Groq</b> for a sharper interviewer &amp; accurate voice <span class="muted">(recommended: used only here)</span></label>
             <div id="ivGroqBox" class="iv-groqbox hidden">
-              <p class="muted">Groq runs <b>Llama&nbsp;3.3&nbsp;70B</b> — far better than the small local model. It's used <b>only for the interview &amp; voice</b>; your main AI engine (in Setup) stays exactly as it is, so you don't spend Groq on anything else. The free tier is plenty.</p>
+              <p class="muted">Groq runs <b>Llama&nbsp;3.3&nbsp;70B</b>: far better than the small local model. It's used <b>only for the interview &amp; voice</b>; your main AI engine (in Setup) stays exactly as it is, so you don't spend Groq on anything else. The free tier is plenty.</p>
               <ol class="iv-roadmap">
-                <li>Open <b>console.groq.com</b> → <b>Sign in</b> (Google/GitHub, free, no card).</li>
-                <li>Left sidebar → <b>API Keys</b> → <b>Create API Key</b> → copy the <code>gsk_…</code> value.</li>
+                <li>Open <b>console.groq.com</b> and <b>Sign in</b> (Google/GitHub, free, no card).</li>
+                <li>In the left sidebar, open <b>API Keys</b>, click <b>Create API Key</b> and copy the <code>gsk_…</code> value.</li>
                 <li>Paste it below and click <b>Save key</b>.</li>
               </ol>
               <div class="row">
@@ -278,7 +278,7 @@
         <div class="card hidden" id="ivLive">
           <div class="card-head">
             <h2 id="ivTitle">Interview</h2>
-            <button class="btn ghost sm" id="ivVoiceToggle" title="Toggle the interviewer's voice">🔊 Voice on</button>
+            <button class="btn ghost sm" id="ivVoiceToggle" title="Toggle the interviewer's voice">Voice on</button>
             <span class="iv-timer" id="ivTimer">00:00</span>
           </div>
           <div id="ivStatement" class="statement"></div>
@@ -291,7 +291,7 @@
             <div class="iv-col">
               <div id="ivChat" class="iv-chat"></div>
               <div class="iv-mic-row">
-                <button class="iv-mic" id="ivMic" title="Tap to answer by voice">🎤<span class="lbl">Tap to answer</span></button>
+                <button class="iv-mic" id="ivMic" title="Tap to answer by voice"><span class="lbl">Tap to answer</span></button>
               </div>
               <div class="iv-input">
                 <input id="ivInput" class="chat-input" placeholder="…or type your answer">
@@ -309,11 +309,11 @@
 
       <!-- COMPANIES -->
       <section class="page" id="page-companies">
-        <header class="hero"><h1>Company prep</h1><p>The most-asked LeetCode questions at top companies — ranked by frequency, matched against what you've already solved.</p></header>
+        <header class="hero"><h1>Company prep</h1><p>The most-asked LeetCode questions at top companies, ranked by frequency, matched against what you've already solved.</p></header>
 
         <div class="card" id="coTargets">
-          <div class="card-head"><h2>🎯 My target companies</h2><span class="muted" id="coTargetCount"></span></div>
-          <p class="muted">Build one merged sheet across your placement shortlist (up to 8). Questions asked by the most of your targets rank first — the highest-leverage problems to solve.</p>
+          <div class="card-head"><h2>My target companies</h2><span class="muted" id="coTargetCount"></span></div>
+          <p class="muted">Build one merged sheet across your placement shortlist (up to 8). Questions asked by the most of your targets rank first, the highest-leverage problems to solve.</p>
           <div id="coTargetChips" class="co-target-chips"></div>
           <div class="muted" style="margin:10px 0 4px">Quick add (featured):</div>
           <div id="coTargetFeatured" class="co-featured"></div>
@@ -330,7 +330,7 @@
           <div class="row" style="margin-top:10px">
             <input id="coSearch" class="probsearch" placeholder="…or search all 650+ companies" spellcheck="false">
             <select id="coSelect" class="sel wide"></select>
-            <button class="btn sm" id="coSavedList">★ My saved list</button>
+            <button class="btn sm" id="coSavedList">My saved list</button>
           </div>
           <div class="row" style="margin-top:10px">
             <div class="seg" id="coPeriod"></div>
@@ -362,14 +362,14 @@
               <option value="companies">Sort: Most companies</option>
               <option value="diff">Sort: Difficulty</option>
               <option value="acc">Sort: Acceptance</option>
-              <option value="title">Sort: Title (A–Z)</option>
+              <option value="title">Sort: Title (A-Z)</option>
             </select>
           </div>
 
           <div class="row" style="margin:8px 0;flex-wrap:wrap">
-            <button class="btn btn-accent sm hidden" id="coPracticeNext">▶ Practice next (in-app)</button>
-            <button class="btn btn-ai sm hidden" id="coInterview">🎤 Mock interview from this list</button>
-            <button class="btn sm" id="coMakePlan">📅 Make study plan</button>
+            <button class="btn btn-accent sm hidden" id="coPracticeNext">Practice next (in-app)</button>
+            <button class="btn btn-ai sm hidden" id="coInterview">Mock interview from this list</button>
+            <button class="btn sm" id="coMakePlan">Make study plan</button>
             <button class="btn sm" id="coCopy">⧉ Copy checklist</button>
             <span class="muted" id="coCount"></span>
           </div>
@@ -390,10 +390,10 @@
 
       <!-- PLAN -->
       <section class="page" id="page-plan">
-        <header class="hero"><h1>Study plan</h1><p>A dated, day-by-day schedule built from your company prep — balanced difficulty, highest-leverage problems first.</p></header>
+        <header class="hero"><h1>Study plan</h1><p>A dated, day-by-day schedule built from your company prep, balanced difficulty, highest-leverage problems first.</p></header>
         <div class="card" id="planEmpty">
           <div class="card-head"><h2>No active plan</h2></div>
-          <p class="muted">Open the <b>Companies</b> tab, pick a company (or build a target sheet), then hit <b>📅 Make study plan</b>. Your schedule — with a daily target and a reminder when reviews are due — shows up here.</p>
+          <p class="muted">Open the <b>Companies</b> tab, pick a company (or build a target sheet), then hit <b>Make study plan</b>. Your schedule, with a daily target and a reminder when reviews are due, shows up here.</p>
         </div>
         <div id="planView" class="hidden">
           <div class="card">
@@ -441,15 +441,15 @@
           <circle cx="6.5" cy="17.4" r="2.6"/><circle cx="17.5" cy="17.4" r="2.6"/></svg>
       </div>
       <h2>Welcome to GitKosh</h2>
-      <p>Your code, problems & progress — in one beautiful place. For the smoothest,
+      <p>Your code, problems & progress, in one beautiful place. For the smoothest,
         fully-private experience we recommend <b>Ollama</b>: a free AI model that runs
         locally on your Mac, powering the tutor, write-ups, quizzes & coaching.</p>
       <div class="modal-steps">
         <div class="step"><span class="num">1</span> Click <b>Use Ollama</b> below</div>
-        <div class="step"><span class="num">2</span> GitKosh installs &amp; starts it for you — no Terminal</div>
+        <div class="step"><span class="num">2</span> GitKosh installs &amp; starts it for you, no Terminal</div>
         <div class="step"><span class="num">3</span> First run downloads the model once (a couple of GB)</div>
       </div>
-      <p class="modal-warn">Prefer a cloud key (Gemini / Groq)? That works too — but
+      <p class="modal-warn">Prefer a cloud key (Gemini / Groq)? That works too, but
         replies can be slower and may hit rate limits during heavy use.</p>
       <div class="modal-actions">
         <button class="btn btn-accent" id="welcomeGotIt">Use Ollama (recommended)</button>
@@ -461,16 +461,16 @@
   <div class="modal hidden" id="ghAuth">
     <div class="modal-card">
       <h2>Connect GitHub</h2>
-      <p>GitHub will ask for a code. Here it is — we've also copied it to your clipboard:</p>
+      <p>GitHub will ask for a code. Here it is (we've also copied it to your clipboard):</p>
       <div class="gh-code" id="ghCode">····-····</div>
       <div class="modal-actions" style="margin-top:14px">
         <button class="btn ghost sm" id="ghCopy">Copy code</button>
-        <button class="btn btn-accent" id="ghOpen">Open GitHub →</button>
+        <button class="btn btn-accent" id="ghOpen">Open GitHub</button>
       </div>
       <div class="modal-steps" style="margin-top:16px">
         <div class="step"><span class="num">1</span> Click <b>Open GitHub</b> (sign in if needed)</div>
         <div class="step"><span class="num">2</span> Paste the code above &amp; click <b>Continue</b></div>
-        <div class="step"><span class="num">3</span> Click <b>Authorize</b> — this window finishes automatically</div>
+        <div class="step"><span class="num">3</span> Click <b>Authorize</b>: this window finishes automatically</div>
       </div>
       <p class="modal-warn" id="ghStatusMsg">Waiting for you to authorize on GitHub…</p>
       <div class="modal-actions">

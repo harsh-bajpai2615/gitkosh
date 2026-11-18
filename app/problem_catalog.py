@@ -2,7 +2,7 @@
 
 Each entry: title, difficulty, topic (pattern), one-line statement, a Python
 starter signature, the LeetCode URL, and whether it is part of Blind 75.
-Generated/curated data — solved in-app and reviewed by the AI tutor."""
+Generated/curated data: solved in-app and reviewed by the AI tutor."""
 from __future__ import annotations
 
 CATALOG = {

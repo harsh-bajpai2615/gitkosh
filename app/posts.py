@@ -32,9 +32,9 @@ def _template(f, days, username):
     plats = ", ".join(f["platforms"]) or "my coding platforms"
     topics = ", ".join(f["topics"]) or "a mix of topics"
     if n:
-        head = f"## This week in problem-solving 🚀\n\nSolved **{n}** problem(s) on {plats} over the last {days} days — now **{f['total']}** total."
+        head = f"## This week in problem-solving\n\nSolved **{n}** problem(s) on {plats} over the last {days} days, now **{f['total']}** total."
     else:
-        head = f"## Problem-solving update 🚀\n\n**{f['total']}** problems solved on {plats} and counting."
+        head = f"## Problem-solving update\n\n**{f['total']}** problems solved on {plats} and counting."
     body = f"\n\n**Focus areas:** {topics}."
     if f["titles"]:
         body += "\n\n**Recently:**\n" + "\n".join(f"- {t}" for t in f["titles"])
@@ -47,7 +47,7 @@ def _short(f, days):
     plats = "/".join(p for p in f["platforms"][:3]) or "coding"
     topics = " ".join("#" + t.replace(" ", "") for t in f["topics"][:3])
     when = f"this week" if f["recent_n"] else "so far"
-    return f"Solved {n} problems {when} on {plats} 🚀 Focus: {', '.join(f['topics'][:3]) or 'DSA'}. {topics} #coding #leetcode"
+    return f"Solved {n} problems {when} on {plats}. Focus: {', '.join(f['topics'][:3]) or 'DSA'}. {topics} #coding #leetcode"
 
 
 def generate(items, rg=None, days=7, username="") -> dict:

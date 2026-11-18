@@ -1,4 +1,4 @@
-"""Roadmap / study-sheet progress — overlays your solved LeetCode problems onto
+"""Roadmap / study-sheet progress: overlays your solved LeetCode problems onto
 the canonical Blind 75 and NeetCode 150 lists. Matching is by LeetCode slug
 (derived from each solved item's repo dir + title).
 """

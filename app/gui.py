@@ -1,4 +1,4 @@
-"""gitkosh — mediator between LeetCode/Codeforces/CodeChef/NeetCode and GitHub.
+"""gitkosh: mediator between LeetCode/Codeforces/CodeChef/NeetCode and GitHub.
 
 Guided, themed UI: log into your 5 accounts (GitHub first), then sync. No coding
 happens here; a platform's web view is only its login screen.
@@ -199,7 +199,7 @@ class App:
 
         b = self.body
 
-        # header — gradient hero banner (Canvas)
+        # header: gradient hero banner (Canvas)
         self.header_canvas = tk.Canvas(b, height=116, highlightthickness=0, bg=BG)
         self.header_canvas.pack(fill="x", padx=16, pady=(16, 10))
         self.header_canvas.bind("<Configure>", self._draw_header)
@@ -214,8 +214,8 @@ class App:
         # segmented tabs (Setup & Sync  /  Showcase)
         nav = tk.Frame(b, bg=BG); nav.pack(fill="x", padx=16, pady=(2, 8))
         self.tab_btns = {}
-        for key, label in [("main", "⚙  Setup & Sync"), ("show", "✨  Showcase"),
-                           ("ins", "📊  Insights"), ("contest", "🏆  Contests")]:
+        for key, label in [("main", "Setup & Sync"), ("show", "Showcase"),
+                           ("ins", "Insights"), ("contest", "Contests")]:
             btn = tk.Label(nav, text=label, bg=LOCK_BG, fg=MUTED, font=(FONT, 11, "bold"),
                            padx=14, pady=9, cursor="hand2")
             btn.pack(side="left", padx=(0, 6))
@@ -242,8 +242,8 @@ class App:
             chip.pack(side="left", padx=(0, 8), pady=(0, 12))
             self.step_chips[key] = chip
 
-        # Step 1 — GitHub
-        ttk.Label(b, text="STEP 1 — CONNECT GITHUB  (do this first)",
+        # Step 1: GitHub
+        ttk.Label(b, text="STEP 1: CONNECT GITHUB  (do this first)",
                   style="Section.TLabel").pack(anchor="w", padx=18, pady=(2, 4))
         gh = self._card(b)
         row = tk.Frame(gh, bg=CARD); row.pack(fill="x", padx=14, pady=12)
@@ -252,8 +252,8 @@ class App:
         self.gh_btn = ttk.Button(row, text="Log in", style="Ghost.TButton", command=self.github_login)
         self.gh_btn.pack(side="right")
 
-        # Step 2 — coding sites
-        ttk.Label(b, text="STEP 2 — CONNECT YOUR CODING SITES",
+        # Step 2: coding sites
+        ttk.Label(b, text="STEP 2: CONNECT YOUR CODING SITES",
                   style="Section.TLabel").pack(anchor="w", padx=18, pady=(4, 4))
         sites = self._card(b)
         for name in CP:
@@ -262,7 +262,7 @@ class App:
             self.pills[name] = self._pill(row, "…", LOCK_FG, LOCK_BG); self.pills[name].pack(side="left")
             ttk.Button(row, text="Log in", style="Ghost.TButton",
                        command=lambda n=name: self.cp_login(n)).pack(side="right")
-        tk.Label(sites, text="Tip: NeetCode mirrors your LeetCode solves — connect LeetCode too.",
+        tk.Label(sites, text="Tip: NeetCode mirrors your LeetCode solves, so connect LeetCode too.",
                  bg=CARD, fg=MUTED, font=(FONT, 10)).pack(anchor="w", padx=14, pady=(0, 10))
 
         # Setup
@@ -289,7 +289,7 @@ class App:
                  bg=CARD, fg=MUTED, font=(FONT, 9)).grid(row=3, column=1, columnspan=2, sticky="w", padx=8)
         ttk.Button(g, text="Save", style="Ghost.TButton", command=self.save_settings).grid(row=0, column=3, rowspan=2, padx=10)
 
-        # One-click free local AI (Ollama) — no key, no terminal, unlimited
+        # One-click free local AI (Ollama): no key, no terminal, unlimited
         orow = tk.Frame(g, bg=CARD); orow.grid(row=4, column=0, columnspan=4, sticky="w", pady=(12, 0))
         tk.Label(orow, text="Free local AI (Ollama):", bg=CARD, fg=MUTED, font=(FONT, 11)).pack(side="left")
         self.ollama_pill = self._pill(orow, "checking…", LOCK_FG, LOCK_BG); self.ollama_pill.pack(side="left", padx=8)
@@ -299,7 +299,7 @@ class App:
                  bg=CARD, fg=MUTED, font=(FONT, 9)).grid(row=5, column=0, columnspan=4, sticky="w", padx=2, pady=(2, 2))
 
         # Automation
-        ttk.Label(b, text="AUTOMATION — hands-free & streak-keeping", style="Section.TLabel").pack(anchor="w", padx=18, pady=(4, 4))
+        ttk.Label(b, text="AUTOMATION: hands-free & streak-keeping", style="Section.TLabel").pack(anchor="w", padx=18, pady=(4, 4))
         auto = self._card(b)
         a = tk.Frame(auto, bg=CARD); a.pack(fill="x", padx=14, pady=12)
         self.sched_var = tk.BooleanVar(value=False)
@@ -315,8 +315,8 @@ class App:
         self.sched_status = tk.Label(a, text="", bg=CARD, fg=MUTED, font=(FONT, 10), anchor="w")
         self.sched_status.grid(row=2, column=0, columnspan=3, sticky="w", pady=(8, 0))
 
-        # Step 3 — sync
-        ttk.Label(b, text="STEP 3 — SYNC", style="Section.TLabel").pack(anchor="w", padx=18, pady=(4, 4))
+        # Step 3: sync
+        ttk.Label(b, text="STEP 3: SYNC", style="Section.TLabel").pack(anchor="w", padx=18, pady=(4, 4))
         bar = tk.Frame(b, bg=BG); bar.pack(fill="x", padx=16, pady=(0, 8))
         self.sync_btn = ttk.Button(bar, text="Sync now", style="Accent.TButton", command=self.do_backfill)
         self.sync_btn.pack(side="left")
@@ -333,7 +333,7 @@ class App:
         # progress (live during sync)
         prog = self._card(b)
         inner = tk.Frame(prog, bg=CARD); inner.pack(fill="x", padx=14, pady=10)
-        self.prog_label = tk.Label(inner, text="Idle — connect accounts, then Sync.", bg=CARD,
+        self.prog_label = tk.Label(inner, text="Idle. Connect accounts, then Sync.", bg=CARD,
                                    fg=INK, font=(FONT, 12, "bold"), anchor="w")
         self.prog_label.pack(fill="x")
         self.prog = ttk.Progressbar(inner, style="CS.Horizontal.TProgressbar",
@@ -378,7 +378,7 @@ class App:
                 buf = BytesIO(); g.save(buf, "PNG")
                 img = tk.PhotoImage(data=base64.b64encode(buf.getvalue()).decode("ascii"))
                 self._grad_cache[w] = img
-            except Exception:  # noqa: BLE001 — Pillow missing: flat accent fallback
+            except Exception:  # noqa: BLE001 (Pillow missing: flat accent fallback)
                 c.create_rectangle(0, 0, w, h, fill=ACCENT, outline="")
         if img is not None:
             c.create_image(0, 0, anchor="nw", image=img)
@@ -407,7 +407,7 @@ class App:
     # ---------------- showcase tab ----------------
     def _build_showcase(self, parent):
         intro = self._card(parent)
-        tk.Label(intro, text="✨  Showcase your work", bg=CARD, fg=INK,
+        tk.Label(intro, text="Showcase your work", bg=CARD, fg=INK,
                  font=(FONT, 15, "bold")).pack(anchor="w", padx=14, pady=(12, 2))
         tk.Label(intro, text="Turn your solves into a shareable stats card, a live portfolio site, "
                  "and ready-to-post progress updates.", bg=CARD, fg=MUTED, font=(FONT, 11),
@@ -510,7 +510,7 @@ class App:
         owner, repo = self._owner_repo()
         md = site.badges_md(self._store_items(), owner, repo, self._pages_url)
         self._copy_text(md)
-        self.card_hint.config(text="✓ Copied! Paste it into your profile README at github.com/"
+        self.card_hint.config(text="Copied! Paste it into your profile README at github.com/"
                               f"{owner}/{owner}.", fg=OK_FG)
         self.root.after(4000, lambda: self.card_hint.config(fg=MUTED))
 
@@ -561,7 +561,7 @@ class App:
             self._pages_url = url
 
             def done():
-                self.pages_status.config(text=f"✓ Live at {url}  (first build can take ~1 min)", fg=OK_FG)
+                self.pages_status.config(text=f"Live at {url}  (first build can take ~1 min)", fg=OK_FG)
                 self.pages_open.config(state="normal")
                 self.pages_btn.config(state="normal")
             self.root.after(0, done)
@@ -594,9 +594,9 @@ class App:
     # ---------------- insights tab ----------------
     def _build_insights(self, parent):
         intro = self._card(parent)
-        tk.Label(intro, text="📊  Your analytics", bg=CARD, fg=INK,
+        tk.Label(intro, text="Your analytics", bg=CARD, fg=INK,
                  font=(FONT, 15, "bold")).pack(anchor="w", padx=14, pady=(12, 2))
-        tk.Label(intro, text="Strengths, pace, solution quality, and résumé-ready bullets — "
+        tk.Label(intro, text="Strengths, pace, solution quality, and résumé-ready bullets, "
                  "all from your own solves.", bg=CARD, fg=MUTED, font=(FONT, 11),
                  wraplength=620, justify="left").pack(anchor="w", padx=14, pady=(0, 12))
 
@@ -635,7 +635,7 @@ class App:
         self.quiz_reveal_btn = ttk.Button(qr, text="Reveal approach", style="Ghost.TButton",
                                           command=self._quiz_reveal, state="disabled")
         self.quiz_reveal_btn.pack(side="left", padx=8)
-        self.quiz_q = tk.Label(qz, text="Recall an old solve from memory — click “Show me a problem”.",
+        self.quiz_q = tk.Label(qz, text="Recall an old solve from memory. Click “Show me a problem”.",
                                bg=CARD, fg=INK, font=(FONT, 12, "bold"), wraplength=620, justify="left", anchor="w")
         self.quiz_q.pack(anchor="w", fill="x", padx=14, pady=(4, 2))
         self.quiz_a = tk.Label(qz, text="", bg=CARD, fg=MUTED, font=(FONT, 11),
@@ -649,7 +649,7 @@ class App:
         a = ins.analytics(items)
         for w in self.ins_metrics.winfo_children():
             w.destroy()
-        opt = f"{round(100 * a['optimal'] / a['coached'])}%" if a["coached"] else "—"
+        opt = f"{round(100 * a['optimal'] / a['coached'])}%" if a["coached"] else "-"
         tiles = [("This week", a["week"]), ("This month", a["month"]),
                  ("Streak", f"{a['current_streak']}d"), ("Longest", f"{a['longest_streak']}d"),
                  ("Optimal", opt), ("Total", a["total"])]
@@ -661,7 +661,7 @@ class App:
             tk.Label(cell, text=l, bg=CARD, fg=MUTED, font=(FONT, 10)).pack(anchor="w")
             if isinstance(v, int) and v > 0:
                 self._animate_number(num, v)
-        self.ins_strengths.config(text="Strongest topics:   " + ("   ·   ".join(a["strengths"]) or "—"))
+        self.ins_strengths.config(text="Strongest topics:   " + ("   ·   ".join(a["strengths"]) or "-"))
         tot = sum(a["difficulty"].values()) or 1
         lines = []
         for lvl in ("Easy", "Medium", "Hard"):
@@ -673,10 +673,10 @@ class App:
             txt = f"{round(100 * a['optimal'] / a['coached'])}% of coached solutions look optimal " \
                   f"({a['optimal']}/{a['coached']})."
             if a["revisit"]:
-                txt += "   Worth revisiting:\n• " + "\n• ".join(i.get("title", "—") for i in a["revisit"][:8])
+                txt += "   Worth revisiting:\n• " + "\n• ".join(i.get("title", "-") for i in a["revisit"][:8])
             self.ins_quality.config(text=txt)
         else:
-            self.ins_quality.config(text="Turn on an AI provider and sync — each solution then gets "
+            self.ins_quality.config(text="Turn on an AI provider and sync, each solution then gets "
                                     "an optimality check, and this fills in.")
         self.resume_box.delete("1.0", "end")
         self.resume_box.insert("1.0", "\n".join(ins.resume_bullets(items)))
@@ -703,23 +703,23 @@ class App:
         import random
         pool = getattr(self, "_quiz_pool", None) or self._store_items()
         if not pool:
-            self.quiz_q.config(text="No solves yet — sync first.")
+            self.quiz_q.config(text="No solves yet. Sync first.")
             return
         self._quiz_cur = random.choice(pool)
         c = self._quiz_cur
-        self.quiz_q.config(text=f"{c.get('title','—')}   ·   "
+        self.quiz_q.config(text=f"{c.get('title','-')}   ·   "
                            f"{LABELS.get(c.get('platform'), c.get('platform'))}   ·   {c.get('difficulty') or ''}")
-        self.quiz_a.config(text="Recall your approach, then reveal ↓")
+        self.quiz_a.config(text="Recall your approach, then reveal")
         self.quiz_reveal_btn.config(state="normal")
 
     def _quiz_reveal(self):
         c = self._quiz_cur or {}
-        self.quiz_a.config(text=c.get("approach") or "(no approach stored — open the solution in your repo)")
+        self.quiz_a.config(text=c.get("approach") or "(no approach stored; open the solution in your repo)")
 
     # ---------------- contests tab ----------------
     def _build_contests(self, parent):
         intro = self._card(parent)
-        tk.Label(intro, text="🏆  Contests", bg=CARD, fg=INK,
+        tk.Label(intro, text="Contests", bg=CARD, fg=INK,
                  font=(FONT, 15, "bold")).pack(anchor="w", padx=14, pady=(12, 2))
         tk.Label(intro, text="Upcoming rounds across platforms, and your Codeforces rating curve.",
                  bg=CARD, fg=MUTED, font=(FONT, 11), wraplength=620, justify="left").pack(anchor="w", padx=14, pady=(0, 12))
@@ -767,7 +767,7 @@ class App:
                      bg=CARD, fg=MUTED, font=(FONT, 11)).pack(anchor="w")
         for c in up[:12]:
             row = tk.Frame(self.contests_list, bg=CARD); row.pack(fill="x", pady=3)
-            when = _dt.datetime.fromtimestamp(c["start"]).strftime("%a %d %b · %H:%M") if c.get("start") else "—"
+            when = _dt.datetime.fromtimestamp(c["start"]).strftime("%a %d %b · %H:%M") if c.get("start") else "-"
             dur = f"{round(c.get('duration', 0) / 3600, 1)}h" if c.get("duration") else ""
             tk.Label(row, text=LABELS.get(c["platform"], c["platform"]),
                      bg=(OK_BG if c["platform"] == "codeforces" else LOCK_BG), fg=INK,
@@ -783,7 +783,7 @@ class App:
         cv = self.rating_canvas
         cv.delete("all")
         if not rating:
-            self.rating_lbl.config(text="Codeforces rating — " +
+            self.rating_lbl.config(text="Codeforces rating: " +
                                    ("connect Codeforces to see your curve" if not handle else "no rated contests yet"))
             return
         vals = [r for _, r in rating]
@@ -833,14 +833,14 @@ class App:
         if ready:
             self.hint.config(text="")
         elif not gh_ok:
-            self.hint.config(text="← connect GitHub first")
+            self.hint.config(text="Connect GitHub first")
         else:
-            self.hint.config(text="← connect a coding site")
+            self.hint.config(text="Connect a coding site")
 
     def _set_chip(self, key, done):
         label = {"1": "Connect GitHub", "2": "Connect a coding site", "3": "Sync to GitHub"}[key]
         if done:
-            self.step_chips[key].config(text=f"✓  {label}", fg=OK_FG, bg=OK_BG)
+            self.step_chips[key].config(text=label, fg=OK_FG, bg=OK_BG)
         else:
             self.step_chips[key].config(text=f"{key}  {label}", fg=LOCK_FG, bg=LOCK_BG)
 
@@ -892,7 +892,7 @@ class App:
                 token = github_auth.poll_for_token(cid, d["device_code"], d.get("interval", 5), d.get("expires_in", 900))
                 login = GitHubAPI(token, "x").whoami()
                 github_auth.save_token(STATE_DIR, token, login)
-                self.logq.put(f"✓ GitHub connected as {login}\n")
+                self.logq.put(f"GitHub connected as {login}\n")
             except Exception as e:  # noqa: BLE001
                 self.logq.put(f"GitHub login failed: {e}\n")
             self.root.after(0, lambda: (self.gh_btn.config(state="normal"), self.refresh_status()))
@@ -949,7 +949,7 @@ class App:
                 self.provider_var.set("ollama")
                 self.model_var.set(model)
                 self.save_settings()
-                self.logq.put("✓ Local AI ready — Write-ups switched to Ollama (free, unlimited).\n")
+                self.logq.put("Local AI ready. Write-ups switched to Ollama (free, unlimited).\n")
             except Exception as e:  # noqa: BLE001
                 self.logq.put(f"Ollama setup failed: {e}\n")
             self.root.after(0, self._refresh_ollama)
@@ -966,7 +966,7 @@ class App:
         threading.Thread(target=run, daemon=True).start()
 
     def _show_update_bar(self, info):
-        self.update_lbl.config(text=f"Update available — v{info['version']} is out (you have v{constants.VERSION})")
+        self.update_lbl.config(text=f"Update available: v{info['version']} is out (you have v{constants.VERSION})")
         self.update_bar.pack(fill="x", padx=16, pady=(0, 8), after=self.header)
 
     def do_update(self):
@@ -1013,8 +1013,8 @@ class App:
             messagebox.showerror("Time format", "Enter the time as HH:MM, e.g. 09:00")
             return
         scheduler.enable(self._program_args(), h, m, bool(self.streak_var.get()))
-        self.logq.put(f"✓ Daily auto-sync scheduled at {h:02d}:{m:02d}"
-                      + (" — will keep your streak alive." if self.streak_var.get() else ".") + "\n")
+        self.logq.put(f"Daily auto-sync scheduled at {h:02d}:{m:02d}"
+                      + (", will keep your streak alive." if self.streak_var.get() else ".") + "\n")
         self._refresh_schedule()
 
     def _refresh_schedule(self):
@@ -1026,8 +1026,8 @@ class App:
             self.time_var.set(f"{h:02d}:{m:02d}")
             self.streak_var.set(ks)
         lr = read_last_run(STATE_DIR)
-        parts = [f"⏰ Scheduled daily at {self.time_var.get()}" if en
-                 else "Not scheduled — runs only when you click Sync."]
+        parts = [f"Scheduled daily at {self.time_var.get()}" if en
+                 else "Not scheduled: runs only when you click Sync."]
         if lr:
             when = lr.get("at", "")[:16].replace("T", " ")
             if lr.get("error"):
@@ -1069,7 +1069,7 @@ class App:
             return
         if not messagebox.askyesno(
             "Reset & re-backfill",
-            "This clears GitKosh's local sync history and rebuilds your repo from scratch — "
+            "This clears GitKosh's local sync history and rebuilds your repo from scratch, "
             "one commit per problem, backdated to the day you actually solved it, so your "
             "contribution graph reflects your real history.\n\n"
             "Your existing commit history in the repo will be REPLACED. Continue?"):

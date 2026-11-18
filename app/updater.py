@@ -2,7 +2,7 @@
 
 Checks GitHub Releases (constants.RELEASES_REPO) for a newer version, and if found,
 downloads the new .app zip, swaps it in place (stripping the download-quarantine flag
-so there's no Gatekeeper prompt), and relaunches — no terminal. Uses the public,
+so there's no Gatekeeper prompt), and relaunches, no terminal. Uses the public,
 unauthenticated GitHub API so it works on any recipient's machine.
 """
 from __future__ import annotations

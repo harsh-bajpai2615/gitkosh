@@ -34,7 +34,7 @@ def badges_md(items: list, owner: str, repo: str, pages_url: str = "") -> str:
         f"![Platforms](https://img.shields.io/badge/Platforms-{len(plat)}-16A34A)",
     ]
     if pages_url:
-        lines += ["", f"🔗 **[My portfolio site]({pages_url})**"]
+        lines += ["", f"**[My portfolio site]({pages_url})**"]
     return "\n".join(lines) + "\n"
 
 
@@ -84,7 +84,7 @@ def render(items: list, owner: str = "", repo: str = "") -> str:
         f'<span class="dn">{diff.get(lvl,0)}</span></div>'
         for lvl, c in DIFF_COLOR.items())
 
-    lang_html = _barlist(langs, total, "#5b8cff") or '<div class="muted">—</div>'
+    lang_html = _barlist(langs, total, "#5b8cff") or '<div class="muted">-</div>'
     plat_html = _barlist(plat, total, "#16a34a")
     topic_bars = _barlist(tags, sum(tags.values()), "#7b7af6", top=10)
 
@@ -96,7 +96,7 @@ def render(items: list, owner: str = "", repo: str = "") -> str:
     rows_html = []
     for i in rows:
         d = i.get("dir")
-        title = _esc(i.get("title", "—"))
+        title = _esc(i.get("title", "-"))
         link = f"{base}/{d}" if (base and d) else (i.get("url") or "#")
         dt = _d(i.get("timestamp"))
         topics = " ".join(i.get("tags") or [])
@@ -105,9 +105,9 @@ def render(items: list, owner: str = "", repo: str = "") -> str:
             f'<tr data-text="{title.lower()} {_esc(i.get("platform"))}" data-topics="{_esc(topics).lower()}">'
             f'<td><a href="{_esc(link)}" target="_blank" rel="noopener">{title}</a></td>'
             f'<td>{_esc(LABELS.get(i.get("platform"), i.get("platform")))}</td>'
-            f'<td style="color:{dc};font-weight:600">{_esc(i.get("difficulty") or "—")}</td>'
-            f'<td>{_esc(i.get("lang") or "—")}</td>'
-            f'<td class="muted">{dt.isoformat() if dt else "—"}</td></tr>')
+            f'<td style="color:{dc};font-weight:600">{_esc(i.get("difficulty") or "-")}</td>'
+            f'<td>{_esc(i.get("lang") or "-")}</td>'
+            f'<td class="muted">{dt.isoformat() if dt else "-"}</td></tr>')
 
     card_img = (f'<img class="card-img" src="{card}" alt="stats" '
                 'onerror="this.style.display=\'none\'">') if card else ""
@@ -115,7 +115,7 @@ def render(items: list, owner: str = "", repo: str = "") -> str:
     return f"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{_esc(owner or "My")} — Competitive Programming</title>
+<title>{_esc(owner or "My")}: Competitive Programming</title>
 <style>
   :root{{--bg:#0f1117;--card:#171a24;--bd:#262b3b;--ink:#f0f2f8;--mut:#8a90a6;--acc:#7b7af6}}
   *{{box-sizing:border-box}} body{{margin:0;background:var(--bg);color:var(--ink);
@@ -159,7 +159,7 @@ def render(items: list, owner: str = "", repo: str = "") -> str:
     <header>
       <div class="logo">{_esc((owner[:2] or "GK").upper())}</div>
       <div><h1>{_esc(owner or "My profile")}</h1>
-      <div class="sub">Competitive Programming portfolio · {total} solved · {last7} this week · last solved {last.isoformat() if last else "—"}</div></div>
+      <div class="sub">Competitive Programming portfolio · {total} solved · {last7} this week · last solved {last.isoformat() if last else "-"}</div></div>
     </header>
   </div>
   {card_img}

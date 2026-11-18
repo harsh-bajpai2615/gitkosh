@@ -1,4 +1,4 @@
-"""A curated library of the core coding-interview patterns — the "learn" reference.
+"""A curated library of the core coding-interview patterns, the "learn" reference.
 Each entry: when to reach for it, the key idea, and example problems.
 """
 from __future__ import annotations
@@ -26,7 +26,7 @@ PATTERNS = [
      "idea": "A size-k heap keeps the best k in O(n log k); two heaps track a running median.",
      "examples": ["Kth Largest Element", "K Closest Points", "Find Median from Data Stream"]},
     {"name": "Backtracking", "when": "Generate all combinations/permutations/subsets, or constraint search.",
-     "idea": "Choose → explore → un-choose; prune branches that can't lead to a solution.",
+     "idea": "Choose, explore, un-choose; prune branches that can't lead to a solution.",
      "examples": ["Subsets", "Combination Sum", "N-Queens"]},
     {"name": "BFS", "when": "Shortest path in unweighted graphs / level-order.",
      "idea": "Expand frontier level by level with a queue; first time you reach a node is the shortest.",
@@ -44,7 +44,7 @@ PATTERNS = [
      "idea": "Sort by start (or end); compare each interval to the last kept one.",
      "examples": ["Merge Intervals", "Insert Interval", "Non-overlapping Intervals"]},
     {"name": "Union-Find", "when": "Dynamic connectivity / grouping with merges.",
-     "idea": "Disjoint-set with path compression + union by rank → near-O(1) merges/finds.",
+     "idea": "Disjoint-set with path compression + union by rank for near-O(1) merges/finds.",
      "examples": ["Number of Connected Components", "Redundant Connection", "Graph Valid Tree"]},
 ]
 

@@ -1,6 +1,6 @@
 """GeeksforGeeks extractor (EXPERIMENTAL · index-only).
 
-GeeksforGeeks exposes NO API for your submitted *source code* — only the list of
+GeeksforGeeks exposes NO API for your submitted *source code*: only the list of
 solved problems is fetchable. So GitKosh records your GFG-solved problems as a
 documented index (title + link + difficulty), without source files. Best-effort;
 the solved-list endpoint is unofficial and may change. Needs your GFG handle

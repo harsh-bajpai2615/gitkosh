@@ -26,7 +26,7 @@ def detect_codechef(session) -> str:
         s = session.requests_session("codechef.com")
         html = s.get("https://www.codechef.com/", timeout=30).text
         soup = BeautifulSoup(html, "html.parser")
-        # Prefer the logged-in user's own link in the header/account menu — a bare
+        # Prefer the logged-in user's own link in the header/account menu, a bare
         # `a[href^="/users/"]` would also match "top users"/ranking widgets on the
         # homepage and detect the wrong handle.
         a = soup.select_one(

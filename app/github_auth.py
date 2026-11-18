@@ -48,7 +48,7 @@ def poll_for_token(client_id: str, device_code: str, interval: int = 5,
         try:
             d = r.json()
         except ValueError:
-            # Transient 5xx / rate-limit can return an HTML body — keep polling
+            # Transient 5xx / rate-limit can return an HTML body, keep polling
             # rather than aborting the whole login.
             continue
         if d.get("access_token"):
@@ -60,7 +60,7 @@ def poll_for_token(client_id: str, device_code: str, interval: int = 5,
             wait += 5
             continue
         raise RuntimeError(f"GitHub auth failed: {err or d}")
-    raise TimeoutError("Login timed out — re-open the GitHub login.")
+    raise TimeoutError("Login timed out: re-open the GitHub login.")
 
 
 # ---------- token storage ----------

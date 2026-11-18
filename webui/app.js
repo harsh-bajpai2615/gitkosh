@@ -11,7 +11,7 @@ const SAMPLE = {
   provider: "ollama",
   card: "sample-card.png",
   insights: {
-    tiles: [["This week", 0], ["This month", 0], ["Streak", "0d"], ["Longest", "4d"], ["Optimal", "—"], ["Total", 38]],
+    tiles: [["This week", 0], ["This month", 0], ["Streak", "0d"], ["Longest", "4d"], ["Optimal", "-"], ["Total", 38]],
     difficulty: { Easy: 8, Medium: 21, Hard: 9 },
     topics: ["Array", "Hash Table", "Math", "Greedy", "Prefix Sum", "String", "Sorting", "Two Pointers"],
     topic_strength: {
@@ -27,7 +27,7 @@ const SAMPLE = {
     resume: [
       "Solved 38+ data-structures & algorithms problems across 6 platforms.",
       "9 hard and 21 medium problems; strongest in Array, Hash Table, Math.",
-      "Maintained consistent practice — 13 active days, longest streak 4 days.",
+      "Maintained consistent practice, 13 active days, longest streak 4 days.",
     ],
     quiz: [{ title: "Maximum Path Score in a Grid", platform: "LeetCode", difficulty: "Hard",
              approach: "1. DP over grid cells.\n2. Track best incoming path.\n3. Answer at bottom-right." }],
@@ -106,7 +106,7 @@ async function renderSetup() {
   $("#ghBadge").className = "badge " + (gh ? "ok" : "no");
   $("#ghStatus").textContent = gh || "Not connected";
   $("#ghDot").classList.toggle("on", !!gh);
-  $("#btnGithub").textContent = gh ? "Connected ✓" : "Connect GitHub";
+  $("#btnGithub").textContent = gh ? "Connected" : "Connect GitHub";
   const sites = $("#sites"); sites.innerHTML = "";
   for (const [k, on] of Object.entries(s.sites)) {
     const el = document.createElement("div"); el.className = "site";
@@ -132,18 +132,18 @@ function updateKeyField(provider, key) {
   if (note) {
     if (provider === "ollama") {
       note.className = "provNote rec";
-      note.innerHTML = "<b>Ollama — recommended.</b> Free, fully local & private — the best experience on a Mac. " +
+      note.innerHTML = "<b>Ollama: recommended.</b> Free, fully local & private, the best experience on a Mac. " +
         "The first reply downloads the model, so give it a few seconds.";
     } else if (provider === "none") {
       note.className = "provNote";
       note.innerHTML = "AI features (tutor, write-ups, quiz grading) are off. Pick <b>Ollama</b> to turn them on for free.";
     } else if (provider === "groq") {
       note.className = "provNote rec";
-      note.innerHTML = "<b>Groq — best for the mock interview &amp; voice.</b> Free &amp; fast (Llama&nbsp;3.3&nbsp;70B), far sharper than the small local model. " +
-        "Get a key in ~1 min:<br>1. Open <b>console.groq.com</b> → sign in (free).<br>2. <b>API Keys → Create API Key</b> → copy the <code>gsk_…</code> value.<br>3. Paste it below and <b>Save</b>.";
+      note.innerHTML = "<b>Groq: best for the mock interview &amp; voice.</b> Free &amp; fast (Llama&nbsp;3.3&nbsp;70B), far sharper than the small local model. " +
+        "Get a key in ~1 min:<br>1. Open <b>console.groq.com</b>, then sign in (free).<br>2. <b>API Keys</b>, then <b>Create API Key</b>, then copy the <code>gsk_…</code> value.<br>3. Paste it below and <b>Save</b>.";
     } else {
       note.className = "provNote warn";
-      note.innerHTML = "⚠ Gemini's free tier has a <b>low daily cap</b>. For a sharper interviewer and voice transcription, prefer <b>Groq</b> (free, fast) or <b>Ollama</b> (free, local).";
+      note.innerHTML = "Gemini's free tier has a <b>low daily cap</b>. For a sharper interviewer and voice transcription, prefer <b>Groq</b> (free, fast) or <b>Ollama</b> (free, local).";
     }
   }
 }
@@ -223,7 +223,7 @@ const PATTERNS_SAMPLE = [
 async function renderContests() {
   const d = await getContests();
   $("#contestList").innerHTML = (d.upcoming || []).map((c) => {
-    // Contest name/url come from external APIs — escape before injecting, and
+    // Contest name/url come from external APIs, escape before injecting, and
     // only emit the link if it's a real http(s) URL.
     const safeUrl = /^https?:\/\//i.test(c.url || "") ? esc(c.url) : "";
     return `<div class="contest"><span class="cbadge ${c.platform === "codeforces" ? "cf" : "lc"}">${esc(LABELS[c.platform] || c.platform)}</span>
@@ -250,7 +250,7 @@ function drawRating(vals, handle) {
 /* ---------- actions ---------- */
 async function act(method, ...args) {
   const a = api();
-  if (!a) { toast("Preview mode — run inside GitKosh to use this."); return null; }
+  if (!a) { toast("Preview mode: run inside GitKosh to use this."); return null; }
   try { return await a[method](...args); } catch (e) { toast("Error: " + e); return null; }
 }
 
@@ -262,7 +262,7 @@ window._streams = window._streams || {};
 window.gkStream = (id, text) => { const h = window._streams[id]; if (h) h(text); };
 async function streamAsk(method, args, onChunk) {
   const a = api();
-  if (!a) { toast("Preview mode — run inside GitKosh to use this."); return null; }
+  if (!a) { toast("Preview mode: run inside GitKosh to use this."); return null; }
   const id = "s" + (++_streamSeq);
   window._streams[id] = onChunk;
   try { return await a[method](...args, id); }
@@ -276,7 +276,7 @@ async function connectGithub() {
   const d = await act("github_start");
   btn.disabled = false;
   if (!d || !d.ok) { toast("Couldn't start GitHub login: " + ((d && d.error) || "check your connection")); return; }
-  // Show the code BEFORE opening the browser — GitHub never shows it for you.
+  // Show the code BEFORE opening the browser, GitHub never shows it for you.
   $("#ghCode").textContent = d.user_code;
   try { await navigator.clipboard?.writeText(d.user_code); } catch (e) {}
   const status = $("#ghStatusMsg"); status.textContent = "Waiting for you to authorize on GitHub…";
@@ -289,7 +289,7 @@ async function connectGithub() {
   if (cancelled) return;
   if (res && res.ok) {
     $("#ghAuth").classList.add("hidden");
-    toast("✓ Connected as " + res.login);
+    toast("Connected as " + res.login);
     renderSetup();
   } else {
     status.textContent = "Login didn't complete: " + ((res && res.error) || "timed out") + ". Close this and try again.";
@@ -301,10 +301,10 @@ async function runSyncFlow(reset) { showProg(); try { await act("run_sync", rese
 $("#btnSync").addEventListener("click", () => runSyncFlow(false));
 $("#btnReset").addEventListener("click", () => runSyncFlow(true));
 $("#btnPublish").addEventListener("click", () =>
-  act("publish_site").then((u) => toast(u ? "Published: " + u : "Couldn't publish — connect GitHub and sync first.")));
+  act("publish_site").then((u) => toast(u ? "Published: " + u : "Couldn't publish: connect GitHub and sync first.")));
 $("#btnPost").addEventListener("click", async () => { $("#postBox").value = "Generating…";
   const r = await act("generate_post");
-  $("#postBox").value = (r && r.post) || ""; if (!r || !r.post) toast("Couldn't generate a post — check your AI provider."); });
+  $("#postBox").value = (r && r.post) || ""; if (!r || !r.post) toast("Couldn't generate a post, check your AI provider."); });
 $("#btnCopyEmbed").addEventListener("click", async () => {
   const md = await act("get_embed"); navigator.clipboard?.writeText(md || ""); toast("Embed code copied"); });
 
@@ -327,8 +327,8 @@ $("#btnPickFolder")?.addEventListener("click", async () => {
   const rows = (s.preview || []).map((r) => `<tr><td>${esc(r.date)}</td><td>${r.count}</td></tr>`).join("");
   pv.innerHTML = `
     <div class="bf-stat"><b>${s.total_files}</b> files · <b>${s.total_days}</b> day(s) · ${s.is_git ? "git dates" : "file dates"}${s.skipped ? " · " + s.skipped + " skipped" : ""}${s.capped ? " · capped" : ""}</div>
-    <div class="muted">${esc(s.oldest || "")} → ${esc(s.newest || "")}</div>
-    <table class="bf-table"><thead><tr><th>Day</th><th>Files → 1 commit</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="muted">${esc(s.oldest || "")} to ${esc(s.newest || "")}</div>
+    <table class="bf-table"><thead><tr><th>Day</th><th>Files in commit</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="muted">Creates one backdated commit per day under <code>imports/${esc(s.name)}</code>.</div>`;
   $("#btnBackfill").classList.remove("hidden");
 });
@@ -337,7 +337,7 @@ $("#btnBackfill")?.addEventListener("click", async () => {
   showProg();
   try {
     const r = await act("backfill_run", _bfPath);
-    if (r && r.ok) toast(`✓ Imported ${r.files} file(s) in ${r.commits} commit(s)`);
+    if (r && r.ok) toast(`Imported ${r.files} file(s) in ${r.commits} commit(s)`);
     else toast("Import failed: " + ((r && r.error) || "unknown"));
   } finally { setTimeout(() => $("#progWrap").classList.add("hidden"), 4000); }
 });
@@ -352,7 +352,7 @@ $$("#providerSeg button").forEach((b) => b.addEventListener("click", () => {
   if (b.dataset.v === "ollama") ensureOllama(); }));
 
 // Install / start Ollama + pull the model, with live progress. Idempotent, so it's
-// safe to call whenever the user picks Ollama — it's near-instant once set up.
+// safe to call whenever the user picks Ollama, it's near-instant once set up.
 async function ensureOllama() {
   if (!api()) return;
   const st = await act("ai_status");
@@ -361,8 +361,8 @@ async function ensureOllama() {
   window.gkProgress("Setting up local AI (Ollama)…", 5);
   const r = await act("setup_ollama");
   $("#progWrap").classList.add("hidden");
-  if (r && r.ok) toast("✓ Local AI is ready");
-  else toast("Ollama setup failed: " + ((r && r.error) || "unknown") + " — see ollama.com");
+  if (r && r.ok) toast("Local AI is ready");
+  else toast("Ollama setup failed: " + ((r && r.error) || "unknown") + ". See ollama.com");
   refreshProvNote();
 }
 
@@ -374,10 +374,10 @@ async function refreshProvNote() {
   if (st.provider === "ollama") {
     if (st.ready) {
       note.className = "provNote rec";
-      note.innerHTML = "<b>✓ Ollama ready.</b> Free, fully local & private — AI tutor, reviews and write-ups are on.";
+      note.innerHTML = "<b>Ollama ready.</b> Free, fully local & private. AI tutor, reviews and write-ups are on.";
     } else if (st.state === "running_no_model") {
       note.className = "provNote warn";
-      note.innerHTML = "Ollama is running — finishing the one-time model download. Hang tight a moment.";
+      note.innerHTML = "Ollama is running: finishing the one-time model download. Hang tight a moment.";
     } else {
       note.className = "provNote";
       note.innerHTML = "Click <b>Ollama</b> above to install & start it automatically (one-time, a couple of GB).";
@@ -418,12 +418,12 @@ async function renderPractice() {
   $("#revStreak").textContent = p.review_streak || 0;
   $("#revToday").textContent = (d.srs && d.srs.reviewed_today) || 0;
   let h = "";
-  if (p.due) h += `<div class="big">🔁 ${p.due} problem(s) due for review.</div>
+  if (p.due) h += `<div class="big">${p.due} problem(s) due for review.</div>
     <button class="btn btn-accent" id="potdReview" style="margin-top:8px">Start review</button>`;
   if (p.next) h += `<div class="big" style="margin-top:14px">Next to solve: <a href="${p.next.url}" target="_blank">${p.next.title}</a></div>
     <div class="muted">from ${p.next.sheet}</div>`;
   if (p.weak && p.weak.length) h += `<div class="weak">Focus areas: ${p.weak.join(" · ")}</div>`;
-  $("#potd").innerHTML = h || `<div class="muted">All caught up 🎉</div>`;
+  $("#potd").innerHTML = h || `<div class="muted">All caught up</div>`;
   const pr = $("#potdReview"); if (pr) pr.addEventListener("click", startQuiz);
   $("#roadmaps").innerHTML = (d.roadmaps || []).map((r) =>
     `<div class="rmrow"><div class="top"><span>${r.name}</span><b>${r.done}/${r.total} · ${r.pct}%</b></div>
@@ -433,12 +433,12 @@ async function renderPractice() {
 }
 
 async function startQuiz() {
-  // The launch banner can trigger this before renderPractice() has loaded data —
+  // The launch banner can trigger this before renderPractice() has loaded data,
   // fetch it on demand rather than racing a timer.
   if (!window._practice) window._practice = await getPractice();
   const d = window._practice || {};
   Q.queue = (d.queue || []).slice(0, 20); Q.idx = 0;
-  if (!Q.queue.length) { $("#quizCard").innerHTML = `<div class="muted">Nothing due — great job! Cards become reviewable as you solve & sync.</div>`; return; }
+  if (!Q.queue.length) { $("#quizCard").innerHTML = `<div class="muted">Nothing due. Great job! Cards become reviewable as you solve & sync.</div>`; return; }
   $("#btnStartQuiz").textContent = "Restart"; showCard();
 }
 function rateRow() {
@@ -462,7 +462,7 @@ function mcqOptions(correct, tags) {
 function showCard() {
   const card = $("#quizCard");
   if (Q.idx >= Q.queue.length) {
-    card.innerHTML = `<div class="qtitle">Session complete 🎉</div><div class="muted">${Q.queue.length} card(s) reviewed.</div>`;
+    card.innerHTML = `<div class="qtitle">Session complete</div><div class="muted">${Q.queue.length} card(s) reviewed.</div>`;
     renderPractice(); $("#btnStartQuiz").textContent = "Start session"; return;
   }
   const c = Q.queue[Q.idx];
@@ -515,7 +515,7 @@ const SAMPLE_PROBLEMS = [
   { id: "maximum-subarray", title: "Maximum Subarray", difficulty: "Medium", topic: "DP / Greedy" }];
 let chat = [], learnInit = false;
 
-// Full-ish Markdown → HTML (headings, lists, code blocks, inline, links, quotes).
+// Full-ish Markdown -> HTML (headings, lists, code blocks, inline, links, quotes).
 function mdLite(src) {
   if (!src) return "";
   const blocks = [];
@@ -570,10 +570,10 @@ async function sendChat(text) {
   const placeholder = { role: "bot", content: "…", pending: true };
   const idx = chat.push(placeholder) - 1; renderChat();
   if ($("#chatSend")) $("#chatSend").disabled = true;
-  // Reassure the user while a local model warms up — it can take a few seconds.
+  // Reassure the user while a local model warms up, it can take a few seconds.
   const warm = setTimeout(() => {
     if (chat[idx] && chat[idx].pending) {
-      chat[idx].content = "Thinking… the local model is warming up — the first reply can take ~10s.";
+      chat[idx].content = "Thinking… the local model is warming up. The first reply can take ~10s.";
       renderChat();
     }
   }, 9000);
@@ -587,14 +587,14 @@ async function sendChat(text) {
     });
   } else reply = "(Preview) Open GitKosh with an AI engine to chat. Tip: identify the pattern, find the invariant, then improve on brute force.";
   clearTimeout(warm);
-  chat[idx] = { role: "bot", content: reply || "No reply — check your AI engine in Setup (Ollama recommended)." };
+  chat[idx] = { role: "bot", content: reply || "No reply: check your AI engine in Setup (Ollama recommended)." };
   renderChat();
   if ($("#chatSend")) $("#chatSend").disabled = false;
 }
 async function renderLearn() {
   if (!learnInit) {
     learnInit = true;
-    if (!chat.length) { chat.push({ role: "bot", content: "Hi! I'm your DSA tutor 👋 Ask me to explain a concept, give a hint, or review your approach — or tap a chip below." }); renderChat(); }
+    if (!chat.length) { chat.push({ role: "bot", content: "Hi! I'm your DSA tutor. Ask me to explain a concept, give a hint, or review your approach, or tap a chip below." }); renderChat(); }
     $("#probSelect").addEventListener("change", loadProblem);
     $("#probSearch").addEventListener("input", () => buildProblemOptions($("#probSearch").value));
     $("#chatSend").addEventListener("click", () => sendChat());
@@ -636,12 +636,12 @@ const reviewAttempts = {};
 // Multi-language Run support. Tests stay Python-only (the catalog harness is Python).
 const LANG_LABELS = { python: "Python", cpp: "C++", java: "Java", javascript: "JavaScript" };
 const LANG_TEMPLATES = {
-  python: "# Scratchpad — write Python, add input below, then Run\nprint('Hello from GitKosh')\n",
+  python: "# Scratchpad: write Python, add input below, then Run\nprint('Hello from GitKosh')\n",
   cpp: "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    cout << \"Hello from GitKosh\" << endl;\n    return 0;\n}\n",
   java: "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello from GitKosh\");\n    }\n}\n",
-  javascript: "// Scratchpad — write JavaScript, then Run\nconsole.log('Hello from GitKosh');\n",
+  javascript: "// Scratchpad: write JavaScript, then Run\nconsole.log('Hello from GitKosh');\n",
 };
-let _editorBaseline = "";  // last value set programmatically — used to detect "untouched"
+let _editorBaseline = "";  // last value set programmatically, used to detect "untouched"
 function curLang() { const s = $("#langSelect"); return (s && s.value) || "python"; }
 async function setupLangPicker() {
   const sel = $("#langSelect");
@@ -649,7 +649,7 @@ async function setupLangPicker() {
   sel.dataset.ready = "1";
   const status = api() ? (await act("lang_status") || {}) : { python: true, cpp: true, java: true, javascript: true };
   sel.innerHTML = Object.keys(LANG_LABELS).map((k) =>
-    `<option value="${k}">${LANG_LABELS[k]}${status[k] === false ? " ⚠ install needed" : ""}</option>`).join("");
+    `<option value="${k}">${LANG_LABELS[k]}${status[k] === false ? " (install needed)" : ""}</option>`).join("");
   sel.addEventListener("change", onLangChange);
 }
 function onLangChange() {
@@ -670,7 +670,7 @@ function buildProblemOptions(filter) {
   $("#probCount").textContent = q ? `(${matches.length})` : `· ${PROBLEMS.length} problems`;
   const groups = { Easy: [], Medium: [], Hard: [] };
   matches.forEach((p) => (groups[p.difficulty] || (groups[p.difficulty] = [])).push(p));
-  const opt = (p) => `<option value="${p.id}">${p.tested ? "✓ " : ""}${esc(p.title)}${p.blind75 ? "  ·  B75" : ""}</option>`;
+  const opt = (p) => `<option value="${p.id}">${esc(p.title)}${p.tested ? " (tested)" : ""}${p.blind75 ? "  ·  B75" : ""}</option>`;
   let html = `<option value="__scratch">⌨︎ Scratchpad (free Python)</option>`;
   for (const lvl of ["Easy", "Medium", "Hard"]) {
     if (groups[lvl] && groups[lvl].length) html += `<optgroup label="${lvl} (${groups[lvl].length})">` + groups[lvl].map(opt).join("") + `</optgroup>`;
@@ -692,7 +692,7 @@ async function loadProblem(forceReset) {
     $("#stdinWrap").classList.remove("hidden"); $("#testBtn").style.display = "none"; $("#reviewBtn").style.display = "none";
     $("#probMeta").innerHTML = "";
     const lang = curLang();
-    $("#probStatement").textContent = `Free ${LANG_LABELS[lang] || "code"} scratchpad — read stdin and print output, then Run.`;
+    $("#probStatement").textContent = `Free ${LANG_LABELS[lang] || "code"} scratchpad: read stdin and print output, then Run.`;
     setEditor(LANG_TEMPLATES[lang] || LANG_TEMPLATES.python);
     return;
   }
@@ -706,13 +706,13 @@ async function loadProblem(forceReset) {
     `<span class="dchip ${dc}">${esc(p.difficulty || "")}</span>` +
     (p.topic ? `<span class="tchip">${esc(p.topic)}</span>` : "") +
     (p.blind75 ? `<span class="tchip b75">Blind 75</span>` : "") +
-    (p.tested ? `<span class="tchip tested">✓ auto-tested</span>` : `<span class="tchip">AI-reviewed</span>`) +
-    (p.url ? `<a class="lc" href="${p.url}" target="_blank" rel="noopener">LeetCode ↗</a>` : "");
+    (p.tested ? `<span class="tchip tested">auto-tested</span>` : `<span class="tchip">AI-reviewed</span>`) +
+    (p.url ? `<a class="lc" href="${p.url}" target="_blank" rel="noopener">LeetCode</a>` : "");
   $("#probStatement").textContent = p.statement || "";
   let code = p.starter || "";
   if (!forceReset && api()) {
     const saved = await act("get_code", pid);
-    if (seq !== _loadSeq) return;  // stale — a newer problem was selected meanwhile
+    if (seq !== _loadSeq) return;  // stale: a newer problem was selected meanwhile
     if (saved && saved.trim()) code = saved;
   }
   setEditor(code);
@@ -755,10 +755,10 @@ async function aiReview() {
   const box = $("#reviewOut");
   box.classList.remove("hidden");
   reviewAttempts[pid] = (reviewAttempts[pid] || 0) + 1;
-  box.innerHTML = `<div class="md-loading">✨ Reviewing your solution… <span class="muted">(local model may take a few seconds)</span></div>`;
+  box.innerHTML = `<div class="md-loading">Reviewing your solution… <span class="muted">(local model may take a few seconds)</span></div>`;
   const r = await streamAsk("ai_review_stream", [$("#editor").value, pid, reviewAttempts[pid]],
     (t) => { box.innerHTML = mdLite(t); });
-  box.innerHTML = mdLite(r || "Couldn't review — check your AI engine in Setup.");
+  box.innerHTML = mdLite(r || "Couldn't review: check your AI engine in Setup.");
   box.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
@@ -793,7 +793,7 @@ async function renderInterview() {
       if (!k.startsWith("gsk_")) { toast("That doesn't look like a Groq key (it starts with gsk_)."); return; }
       const r = await act("set_interview_groq", k);
       $("#ivGroqKey").value = "";
-      if (r) { toast("Saved — interviews now use Groq 🎤"); renderIvEngine(); }
+      if (r) { toast("Saved: interviews now use Groq"); renderIvEngine(); }
     });
   }
   renderIvEngine();
@@ -804,7 +804,7 @@ async function renderIvEngine() {
   $("#ivUseGroq").checked = !!e.use_groq;
   $("#ivGroqBox").classList.toggle("hidden", !e.use_groq);
   const st = $("#ivEngineStatus");
-  if (e.use_groq && e.has_key) { st.className = "ok"; st.textContent = "✓ Using Groq (Llama 3.3 70B) for the interview & voice — your main engine is untouched."; }
+  if (e.use_groq && e.has_key) { st.className = "ok"; st.textContent = "Using Groq (Llama 3.3 70B) for the interview & voice. Your main engine is untouched."; }
   else if (e.use_groq && !e.has_key) { st.className = ""; st.textContent = "Add your Groq key above to activate."; }
   else { st.className = ""; st.textContent = `Currently using your main AI engine (${e.main_provider}). Turn on Groq above for a much sharper interviewer.`; }
 }
@@ -845,7 +845,7 @@ async function ivSend(text) {
   const hist = IV.chat.filter((m) => !m.pending);
   const reply = await streamAsk("interview_reply", [hist, IV.pid, $("#ivCode").value],
     (t) => { IV.chat[idx] = { role: "bot", content: t }; ivRenderChat(); });
-  IV.chat[idx] = { role: "bot", content: reply || "Let's continue — what's your next step?" };
+  IV.chat[idx] = { role: "bot", content: reply || "Let's continue: what's your next step?" };
   ivRenderChat();
   $("#ivSend").disabled = false;
   ttsSpeak(IV.chat[idx].content, autoListen);  // ask aloud, then auto-listen for the answer
@@ -854,14 +854,14 @@ async function ivSend(text) {
 /* ---------- voice: TTS (interviewer speaks) + STT (you answer) ---------- */
 const VOICE = { on: true, recording: false, busy: false, fails: 0, voice: null, utter: null, gen: 0 };
 function stripForSpeech(md) {
-  return String(md || "").replace(/```[\s\S]*?```/g, " — code — ")
+  return String(md || "").replace(/```[\s\S]*?```/g, ", code, ")
     .replace(/`([^`]+)`/g, "$1").replace(/\[(.*?)\]\(.*?\)/g, "$1")
     .replace(/[#*_>~|]/g, "").replace(/\s+/g, " ").trim();
 }
 function pickVoice() {
   try {
     const vs = (window.speechSynthesis && window.speechSynthesis.getVoices()) || [];
-    if (!vs.length) return null;          // not ready yet — use default, retry next time
+    if (!vs.length) return null;          // not ready yet, use default, retry next time
     if (VOICE.voice) return VOICE.voice;
     const pref = ["Samantha", "Google US English", "Microsoft Aria Online (Natural) - English (United States)", "Alex", "Karen", "Daniel"];
     let v = null;
@@ -892,7 +892,7 @@ function ttsSpeak(text, onDone) {
       u.onend = fin; u.onerror = fin;
       VOICE.utter = u; markSpeaking(true);
       window.speechSynthesis.speak(u);
-      // safety net only — onend is primary; keep it generous so it never preempts real speech
+      // safety net only, onend is primary; keep it generous so it never preempts real speech
       setTimeout(fin, Math.min(90000, 3500 + say.length * 75));
       return;
     }
@@ -913,7 +913,7 @@ function stopSpeaking() {
 function toggleVoice() {
   VOICE.on = !VOICE.on;
   const b = $("#ivVoiceToggle");
-  b.textContent = VOICE.on ? "🔊 Voice on" : "🔇 Voice off";
+  b.textContent = VOICE.on ? "Voice on" : "Voice off";
   b.classList.toggle("off", !VOICE.on);
   if (!VOICE.on) stopSpeaking();
 }
@@ -923,7 +923,7 @@ function setMic(state) {  // "idle" | "recording" | "busy"
   m.classList.toggle("busy", state === "busy");
   const lbl = state === "recording" ? "Listening… tap when done"
     : state === "busy" ? "Transcribing…" : "Tap to answer";
-  m.innerHTML = (state === "recording" ? "⏺" : "🎤") + `<span class="lbl">${esc(lbl)}</span>`;
+  m.innerHTML = `<span class="lbl">${esc(lbl)}</span>`;
 }
 // Voice-first: auto-start listening once the interviewer finishes speaking.
 function autoListen() {
@@ -939,7 +939,7 @@ async function voiceStartRec() {
   if (!api() || VOICE.recording || VOICE.busy) return;
   stopSpeaking();  // make sure the AI isn't talking into the mic
   const r = await act("voice_start");
-  if (!r || !r.ok) { toast((r && r.error) || "Microphone unavailable — check permissions."); return; }
+  if (!r || !r.ok) { toast((r && r.error) || "Microphone unavailable: check permissions."); return; }
   VOICE.recording = true; setMic("recording");
 }
 async function voiceStopRec() {
@@ -951,11 +951,11 @@ async function voiceStopRec() {
     VOICE.fails = 0;
     $("#ivInput").value = r.text; ivSend();
   } else {
-    const err = (r && r.error) || "Couldn't hear that — tap the mic to try again, or type.";
-    const transient = /didn'?t catch/i.test(err);  // silence/too-short → worth auto-retrying
+    const err = (r && r.error) || "Couldn't hear that, tap the mic to try again, or type.";
+    const transient = /didn'?t catch/i.test(err);  // silence/too-short -> worth auto-retrying
     VOICE.fails = (VOICE.fails || 0) + 1;
     if (transient && VOICE.fails < 2 && IV.running && VOICE.on && isTab("interview")) {
-      toast("Didn't catch that — listening again…"); autoListen();
+      toast("Didn't catch that, listening again…"); autoListen();
     } else {
       VOICE.fails = 0;
       toast(err);  // show the real, actionable reason (permission/setup/etc.)
@@ -974,11 +974,11 @@ function ivStopAudio() {
 async function ivScore() {
   if (!IV.pid) return;
   const box = $("#ivScorecard"); box.classList.remove("hidden");
-  box.innerHTML = `<div class="md-loading">📋 Scoring your interview…</div>`;
+  box.innerHTML = `<div class="md-loading">Scoring your interview…</div>`;
   const elapsed = Math.floor((Date.now() - IV.t0) / 1000);
   clearInterval(IV.timer); IV.running = false; ivStopAudio();
   const r = await act("interview_score", IV.chat.filter((m) => !m.pending), IV.pid, $("#ivCode").value, elapsed);
-  box.innerHTML = mdLite(r || "Couldn't produce a scorecard — check your AI engine in Setup.");
+  box.innerHTML = mdLite(r || "Couldn't produce a scorecard, check your AI engine in Setup.");
   box.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 function ivQuit() {
@@ -1010,7 +1010,7 @@ async function renderCompanies() {
   // ---- target sheet picker ----
   CO.targets = (await act("get_targets") || []).map((t) => t.slug);
   $("#coTargetAdd").innerHTML = `<option value="">+ add a company…</option>` +
-    CO.companies.map((c) => `<option value="${esc(c.slug)}">${esc(c.name)}${c.featured ? " ★" : ""}</option>`).join("");
+    CO.companies.map((c) => `<option value="${esc(c.slug)}">${esc(c.name)}${c.featured ? " (featured)" : ""}</option>`).join("");
   $("#coTargetAdd").addEventListener("change", (e) => { if (e.target.value) { toggleTarget(e.target.value, true); e.target.value = ""; } });
   $("#coBuildTargets").addEventListener("click", buildTargets);
   renderTargetPicker();
@@ -1046,7 +1046,7 @@ async function coGeneratePlan() {
   $("#planGenerate").disabled = false;
   if (!r || !r.ok) { toast((r && r.error) || "Couldn't build the plan."); return; }
   $("#coPlanBar").classList.add("hidden");
-  toast(`Plan ready — ${r.total} questions over ${r.days.length} days`);
+  toast(`Plan ready: ${r.total} questions over ${r.days.length} days`);
   const navBtn = $$(".nav-item").find((b) => b.dataset.tab === "plan");
   if (navBtn) switchTab("plan", navBtn);
   renderPlan(r);
@@ -1056,7 +1056,7 @@ function buildCompanyOptions(filter) {
   const sel = $("#coSelect");
   const list = q ? CO.companies.filter((c) => c.name.toLowerCase().includes(q) || c.slug.includes(q)) : CO.companies;
   sel.innerHTML = `<option value="">Select a company… (${CO.companies.length})</option>` +
-    list.slice(0, 400).map((c) => `<option value="${esc(c.slug)}">${esc(c.name)}${c.featured ? " ★" : ""}</option>`).join("");
+    list.slice(0, 400).map((c) => `<option value="${esc(c.slug)}">${esc(c.name)}${c.featured ? " (featured)" : ""}</option>`).join("");
   if (CO.slug && [...sel.options].some((o) => o.value === CO.slug)) sel.value = CO.slug;
   else if (q && list.length === 1) selectCompany(list[0].slug);
 }
@@ -1091,7 +1091,7 @@ async function loadSaved() {
   if (seq !== _coSeq) return;
   if (!r || !r.ok) { $("#coTableWrap").innerHTML = `<div class="muted">Couldn't load saved list.</div>`; return; }
   CO.name = r.name; CO.last = r;
-  if (!r.total) { $("#coTableWrap").innerHTML = `<div class="co-empty">No saved questions yet. Tap the ☆ star on any question to build your personal interview-prep list across companies.</div>`;
+  if (!r.total) { $("#coTableWrap").innerHTML = `<div class="co-empty">No saved questions yet. Tap the star on any question to build your personal interview-prep list across companies.</div>`;
     $("#coTitle").textContent = "My saved list"; $("#coProgress").textContent = "0 saved";
     $("#coPracticeNext").classList.add("hidden"); $("#coInterview").classList.add("hidden"); return; }
   renderCompanyResult(r);
@@ -1129,7 +1129,7 @@ async function toggleTarget(slug, forceAdd) {
   if (has && forceAdd) return;
   if (has) CO.targets = CO.targets.filter((s) => s !== slug);
   else {
-    if (CO.targets.length >= 8) { toast("Up to 8 target companies — remove one first."); return; }
+    if (CO.targets.length >= 8) { toast("Up to 8 target companies, remove one first."); return; }
     CO.targets.push(slug);
   }
   const r = await act("set_targets", CO.targets);
@@ -1158,9 +1158,9 @@ function _bar(lbl, cls, done, total) {
 }
 function renderCompanyResult(r) {
   const saved = r.company === "__saved", targets = r.company === "__targets";
-  $("#coTitle").textContent = saved ? "★ My saved list"
-    : targets ? `🎯 Target sheet — ${(r.targets || []).length} companies`
-    : `${r.name} — top questions`;
+  $("#coTitle").textContent = saved ? "My saved list"
+    : targets ? `Target sheet: ${(r.targets || []).length} companies`
+    : `${r.name}: top questions`;
   const pct = r.total ? Math.round((100 * r.solved) / r.total) : 0;
   $("#coProgress").textContent = `${r.solved}/${r.total} solved (${pct}%)`;
   const inAppCount = r.questions.filter((q) => q.in_app).length;
@@ -1231,9 +1231,9 @@ function renderTable() {
   const rows = list.map((q, i) => {
     const dc = q.difficulty === "Easy" ? "easy" : q.difficulty === "Hard" ? "hard" : "med";
     const bar = Math.max(3, Math.round((46 * (q.frequency || 0)) / maxFreq));
-    const status = q.solved ? `<span class="solved">✓ Solved</span>`
+    const status = q.solved ? `<span class="solved">Solved</span>`
       : q.in_app ? `<a href="#" class="co-open" data-pid="${esc(q.slug)}">Solve in app</a>`
-      : `<a href="${esc(q.url)}" target="_blank" rel="noopener">LeetCode ↗</a>`;
+      : `<a href="${esc(q.url)}" target="_blank" rel="noopener">LeetCode</a>`;
     return `<tr class="${q.solved ? "done" : ""}">
       <td>${i + 1}</td>
       <td><button class="co-star ${q.bookmarked ? "on" : ""}" data-slug="${esc(q.slug)}" title="Save to my list">${q.bookmarked ? "★" : "☆"}</button></td>
@@ -1290,13 +1290,13 @@ function coCopy() {
   const list = applyFilters();
   if (!list.length) { toast("Nothing to copy with these filters."); return; }
   const title = CO.slug === "__saved" ? "My saved list"
-    : CO.slug === "__targets" ? `Target sheet — ${((CO.last && CO.last.targets) || []).join(", ")}`
-    : `${CO.name} — interview prep`;
+    : CO.slug === "__targets" ? `Target sheet: ${((CO.last && CO.last.targets) || []).join(", ")}`
+    : `${CO.name}: interview prep`;
   const lines = [`# ${title}`, ""];
   for (const q of list) {
     const box = q.solved ? "[x]" : "[ ]";
     const at = q.companies && q.companies.length ? ` · asked at: ${q.companies.join(", ")}` : "";
-    lines.push(`- ${box} [${q.title}](${q.url}) — ${q.difficulty || "?"} · ${(q.frequency || 0).toFixed(0)}% freq${at}`);
+    lines.push(`- ${box} [${q.title}](${q.url}), ${q.difficulty || "?"} · ${(q.frequency || 0).toFixed(0)}% freq${at}`);
   }
   navigator.clipboard?.writeText(lines.join("\n"));
   toast(`Copied ${list.length} questions as a checklist`);
@@ -1346,14 +1346,14 @@ async function renderPlan(planArg) {
   window._plan = plan;
   $("#planEmpty").classList.add("hidden"); $("#planView").classList.remove("hidden");
   const pr = plan.progress || { done: 0, total: 0, pct: 0 };
-  $("#planName").textContent = `${plan.name} — study plan`;
+  $("#planName").textContent = `${plan.name}: study plan`;
   $("#planProgress").textContent = `${pr.done}/${pr.total} done (${pr.pct}%)`;
   $("#planMeta").innerHTML =
     `<span><b>${plan.weeks}</b> weeks · <b>${plan.per_day}</b>/day</span>` +
     `<span>Window: <b>${esc(periodLabel(plan.period))}</b></span>` +
     `<span>Started <b>${esc((plan.created || "").slice(0, 10))}</b></span>` +
     (plan.include_solved ? `<span>incl. solved</span>` : "") +
-    (plan.topic_weighted ? `<span>⚡ weak-topic focus</span>` : "");
+    (plan.topic_weighted ? `<span>weak-topic focus</span>` : "");
   if (plan.topic_weighted && (plan.weak_topics || []).length) {
     $("#planMeta").innerHTML +=
       `<span style="flex-basis:100%">Emphasizing: ${plan.weak_topics.map((t) =>
@@ -1366,19 +1366,19 @@ async function renderPlan(planArg) {
   if (today) {
     $("#planTodayBadge").textContent = `${today.done}/${today.total} done`;
     $("#planToday").innerHTML = today.items.length
-      ? today.items.map(planItemRow).join("") : `<div class="muted">Rest day — nothing scheduled 🎉</div>`;
+      ? today.items.map(planItemRow).join("") : `<div class="muted">Rest day: nothing scheduled</div>`;
   } else {
     const upcoming = plan.days.find((d) => !d.is_past);
     $("#planTodayBadge").textContent = "";
     $("#planToday").innerHTML = upcoming
       ? `<div class="muted">Nothing due today. Next study day: <b>${esc(upcoming.date)}</b>.</div>`
-      : `<div class="muted">Plan complete — nice work! 🎉</div>`;
+      : `<div class="muted">Plan complete: nice work!</div>`;
   }
   // full schedule grouped into weeks of 7
   const weeks = [];
   for (let i = 0; i < plan.days.length; i += 7) weeks.push(plan.days.slice(i, i + 7));
   $("#planSchedule").innerHTML = weeks.map((wk, wi) =>
-    `<div class="plan-week"><div class="plan-week-h">Week ${wi + 1} · ${esc(wk[0].date)} – ${esc(wk[wk.length - 1].date)}</div>${wk.map(planDayBlock).join("")}</div>`).join("");
+    `<div class="plan-week"><div class="plan-week-h">Week ${wi + 1} · ${esc(wk[0].date)} to ${esc(wk[wk.length - 1].date)}</div>${wk.map(planDayBlock).join("")}</div>`).join("");
   $$("#page-plan .co-open").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openInApp(a.dataset.pid); }));
 }
 function planItemRow(it) {
@@ -1399,10 +1399,10 @@ function planDayBlock(d) {
 }
 function planCopy() {
   const plan = window._plan; if (!plan) return;
-  const lines = [`# ${plan.name} — study plan (${plan.weeks} weeks, ${plan.per_day}/day)`, ""];
+  const lines = [`# ${plan.name}: study plan (${plan.weeks} weeks, ${plan.per_day}/day)`, ""];
   for (const d of plan.days) {
     lines.push(`## ${d.weekday} ${d.date}`);
-    for (const it of d.items) lines.push(`- ${it.solved ? "[x]" : "[ ]"} [${it.title}](${it.url}) — ${it.difficulty || "?"}`);
+    for (const it of d.items) lines.push(`- ${it.solved ? "[x]" : "[ ]"} [${it.title}](${it.url}), ${it.difficulty || "?"}`);
     lines.push("");
   }
   navigator.clipboard?.writeText(lines.join("\n"));
@@ -1428,7 +1428,7 @@ function showPattern(i) {
     <div style="margin-top:6px"><b>Idea:</b> ${esc(p.idea)}</div>
     <div class="ex">${(p.examples || []).map((e) => `<span class="chip">${esc(e)}</span>`).join("")}</div>
     <div class="row" style="margin-top:12px">
-      <button class="btn sm btn-accent" id="drillPat">🧩 Practice this pattern</button>
+      <button class="btn sm btn-accent" id="drillPat">Practice this pattern</button>
       <button class="btn sm" id="askPat">Ask the tutor about this</button>
     </div>
     <div id="patDrill"></div>`;
@@ -1488,7 +1488,7 @@ async function vizPlay() {
   const f = { bubble: bubbleSort, insertion: insertionSort, selection: selectionSort, quick: () => quickSort(0, vizArr.length - 1) };
   try { await f[$("#vizAlgo").value](); } catch (e) { if (!(e instanceof VizStopped)) throw e; }
   vizDraw(); vizBusy = false;
-  $("#vizPlay").textContent = "▶ Play"; $("#vizPlay").disabled = false;
+  $("#vizPlay").textContent = "Play"; $("#vizPlay").disabled = false;
   $("#vizStop").disabled = true; $("#vizShuffle").disabled = false; $("#vizAlgo").disabled = false;
 }
 function vizHalt() { vizStop = true; }
@@ -1501,9 +1501,9 @@ async function runCode() {
   const out = $("#runOut"); out.textContent = "Running…"; $("#runStatus").textContent = "";
   if (!api()) { toast("Run works inside the app."); out.textContent = ""; return; }
   const r = await act("run_code", $("#editor").value, $("#stdin") ? $("#stdin").value : "", curLang());
-  if (!r) { out.textContent = ""; toast("Run failed — try again."); return; }
+  if (!r) { out.textContent = ""; toast("Run failed: try again."); return; }
   out.textContent = (r.stdout || "") + (r.stderr ? "\n" + r.stderr : "");
-  $("#runStatus").textContent = (r.ok ? "✓ ran" : "✗ error") + `  ${r.ms || 0}ms`;
+  $("#runStatus").textContent = (r.ok ? "ran" : "error") + `  ${r.ms || 0}ms`;
   $("#runStatus").className = "runstatus " + (r.ok ? "ok" : "bad");
 }
 async function runTests() {
@@ -1511,7 +1511,7 @@ async function runTests() {
   const out = $("#runOut"); out.textContent = "Running tests…"; $("#runStatus").textContent = "";
   if (!api()) { toast("Tests run inside the app."); out.textContent = ""; return; }
   const r = await act("run_tests", $("#editor").value, $("#probSelect").value);
-  if (!r) { out.textContent = ""; toast("Couldn't run tests — try again."); return; }
+  if (!r) { out.textContent = ""; toast("Couldn't run tests, try again."); return; }
   out.textContent = r.output || "";
   $("#runStatus").textContent = `${r.passed}/${r.total} passed`;
   $("#runStatus").className = "runstatus " + (r.ok ? "ok" : "bad");
@@ -1577,7 +1577,7 @@ async function reviewNudge() {
   const b = $("#reviewBanner");
   if (!st || !st.due || !b) return;
   $("#reviewBannerText").textContent =
-    `🔁 ${st.due} problem${st.due > 1 ? "s" : ""} due for review` +
+    `${st.due} problem${st.due > 1 ? "s" : ""} due for review` +
     (st.review_streak ? ` · keep your ${st.review_streak}-day review streak alive` : "");
   b.classList.remove("hidden");
   $("#reviewBannerGo").onclick = () => {
@@ -1588,9 +1588,9 @@ async function reviewNudge() {
   };
   $("#reviewBannerX").onclick = () => b.classList.add("hidden");
 }
-// Always boot once the DOM is parsed — pywebview can inject its bridge before the
+// Always boot once the DOM is parsed, pywebview can inject its bridge before the
 // document finishes loading, so guarding on `window.pywebview` alone can run boot()
-// too early (nav not built yet → ?tab deep-link silently ignored). readyState is the
+// too early (nav not built yet -> ?tab deep-link silently ignored). readyState is the
 // reliable signal. pywebviewready re-runs boot to refresh data once the bridge is live.
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", boot, { once: true });

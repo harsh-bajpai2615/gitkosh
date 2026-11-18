@@ -1,8 +1,8 @@
-"""Voice mock-interview support — native macOS TTS + speech-to-text.
+"""Voice mock-interview support: native macOS TTS + speech-to-text.
 
 TTS: macOS `say` (a reliable fallback; the web UI prefers the Web Speech API).
 STT: record the mic with AVAudioRecorder, then transcribe on-device with the Speech
-framework (SFSpeechRecognizer — free & private). If on-device recognition isn't
+framework (SFSpeechRecognizer: free & private). If on-device recognition isn't
 available/authorized and a Groq key is set, fall back to Groq's Whisper API.
 
 All audio APIs are macOS-only and need the bundle's Info.plist usage strings
@@ -21,7 +21,7 @@ import time
 _recorder = None
 _rec_path = None
 
-# 'lpcm' fourcc — kAudioFormatLinearPCM (CoreAudio constant, stable).
+# 'lpcm' fourcc: kAudioFormatLinearPCM (CoreAudio constant, stable).
 _FMT_LINEAR_PCM = 1819304813
 
 # Domain vocabulary to bias the speech recognizer (contextualStrings) so DSA terms
@@ -72,7 +72,7 @@ def start_recording() -> dict:
     except Exception as e:  # noqa: BLE001
         return {"ok": False, "error": f"audio frameworks unavailable: {e}"}
     try:
-        if _recorder is not None:  # already recording — restart cleanly
+        if _recorder is not None:  # already recording: restart cleanly
             try:
                 _recorder.stop()
             except Exception:  # noqa: BLE001
@@ -93,7 +93,7 @@ def start_recording() -> dict:
         if rec is None:
             return {"ok": False, "error": f"couldn't init recorder: {err}"}
         if not rec.record():
-            return {"ok": False, "error": "microphone unavailable (check mic permission in System Settings → Privacy)"}
+            return {"ok": False, "error": "microphone unavailable (check mic permission in System Settings > Privacy)"}
         _recorder, _rec_path = rec, path
         return {"ok": True}
     except Exception as e:  # noqa: BLE001
@@ -101,7 +101,7 @@ def start_recording() -> dict:
 
 
 def stop_and_transcribe(groq_key: str = "", hints=None) -> dict:
-    """Stop recording and transcribe — on-device first, then Groq Whisper.
+    """Stop recording and transcribe: on-device first, then Groq Whisper.
     `hints` are extra contextual phrases (e.g. the current problem title) that bias
     on-device recognition toward the right vocabulary."""
     global _recorder, _rec_path
@@ -113,10 +113,10 @@ def stop_and_transcribe(groq_key: str = "", hints=None) -> dict:
         pass
     path, _recorder, _rec_path = _rec_path, None, None
     if not path or not os.path.exists(path) or os.path.getsize(path) < 1024:
-        return {"ok": False, "error": "no audio captured — try again"}
+        return {"ok": False, "error": "no audio captured, try again"}
     try:
         text, engine = None, ""
-        # Prefer Groq Whisper when a key is set — it's more accurate than on-device
+        # Prefer Groq Whisper when a key is set, it's more accurate than on-device
         # dictation and needs no macOS Speech-Recognition permission. Fall back to
         # on-device if Groq fails (e.g. offline).
         if groq_key:
@@ -151,20 +151,20 @@ def _why_no_stt(groq_key: str) -> str:
     except Exception:  # noqa: BLE001
         st = None
     if st in (1, 2):
-        return ("Speech Recognition is off for this app. Enable it in System Settings → "
-                "Privacy & Security → Speech Recognition" + ("" if groq_key else ", or add a Groq API key in Setup."))
+        return ("Speech Recognition is off for this app. Enable it in System Settings > "
+                "Privacy & Security > Speech Recognition" + ("" if groq_key else ", or add a Groq API key in Setup."))
     if st == 0:
-        return ("Speech Recognition wasn't granted (the dev run can't request it — it works "
-                "in the built app). For now, add a Groq API key in Setup → AI engine to use voice.")
-    # authorized but still nothing — likely silence/too short
-    return "Didn't catch any speech — speak a bit longer and clearer, then tap to stop."
+        return ("Speech Recognition wasn't granted (the dev run can't request it; it works "
+                "in the built app). For now, add a Groq API key in Setup > AI engine to use voice.")
+    # authorized but still nothing, likely silence/too short
+    return "Didn't catch any speech. Speak a bit longer and clearer, then tap to stop."
 
 
 # ---------- transcription engines ----------
 def _transcribe_ondevice(path: str, hints=None, timeout: int = 15) -> str | None:
     """Transcribe on-device. The Speech framework (auth prompt + recognitionTask
     callbacks) must run on the main thread, but the JS bridge calls us on a worker
-    thread — so we hop the work onto the main queue and block here on an Event until
+    thread, so we hop the work onto the main queue and block here on an Event until
     the main run loop (the live UI loop) delivers the result."""
     import Foundation
     import Speech
@@ -182,7 +182,7 @@ def _transcribe_ondevice(path: str, hints=None, timeout: int = 15) -> str | None
             url = Foundation.NSURL.fileURLWithPath_(path)
             req = Speech.SFSpeechURLRecognitionRequest.alloc().initWithURL_(url)
             # Use Apple's best-available recognizer (server-quality when online, the
-            # same engine as macOS Dictation; auto-falls back to on-device offline) —
+            # same engine as macOS Dictation; auto-falls back to on-device offline),
             # forcing strictly on-device noticeably hurts accuracy.
             try:  # bias toward DSA vocabulary + the current problem title
                 phrases = list(_DSA_HINTS) + [h for h in (hints or []) if h]
@@ -208,7 +208,7 @@ def _transcribe_ondevice(path: str, hints=None, timeout: int = 15) -> str | None
             start_recognition()
         elif st in (1, 2):               # denied / restricted
             done.set()
-        else:                            # not determined → prompt (on main), then proceed
+        else:                            # not determined -> prompt (on main), then proceed
             def authcb(status):
                 start_recognition() if status == 3 else done.set()
             Speech.SFSpeechRecognizer.requestAuthorization_(authcb)

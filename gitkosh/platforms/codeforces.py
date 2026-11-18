@@ -53,7 +53,7 @@ class Codeforces(Platform):
             return self.session.browser_fetch(url, wait_selector)
         looks_blocked = r.status_code != 200 or "Just a moment" in r.text or "cf-browser-verification" in r.text
         if looks_blocked:
-            # Cloudflare challenge — retry through the real logged-in browser.
+            # Cloudflare challenge: retry through the real logged-in browser.
             return self.session.browser_fetch(url, wait_selector)
         return r.text
 

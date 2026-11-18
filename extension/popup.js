@@ -9,7 +9,7 @@ chrome.storage.sync.get(["token", "repo"], (d) => {
 
 document.getElementById("save").onclick = () => {
   chrome.storage.sync.set({ token: t.value.trim(), repo: r.value.trim() }, () => {
-    s.textContent = "✓ Saved — solve something on LeetCode!";
+    s.textContent = "Saved: solve something on LeetCode!";
     setTimeout(() => (s.textContent = ""), 2500);
   });
 };

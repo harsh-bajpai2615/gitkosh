@@ -1,4 +1,4 @@
-"""Native macOS login window (WebKit) — no Playwright, no Chromium.
+"""Native macOS login window (WebKit): no Playwright, no Chromium.
 
 Run standalone:  python -m app.login_helper --out <storage_state.json> --platforms leetcode,codeforces
 
@@ -50,7 +50,7 @@ class LoginDelegate(NSObject):
         self.window = NSWindow.alloc().initWithContentRect_styleMask_backing_defer_(
             rect, _STYLE, NSBackingStoreBuffered, False
         )
-        self.window.setTitle_("GitKosh — log in, then click Save & Finish")
+        self.window.setTitle_("GitKosh: log in, then click Save & Finish")
         self.window.center()
         content = self.window.contentView()
 

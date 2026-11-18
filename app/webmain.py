@@ -1,7 +1,7 @@
 """Prototype web-stack UI for GitKosh.
 
 A native WebKit window (pywebview) renders webui/ (modern HTML/CSS/JS) and bridges
-to the SAME Python backend the Tk app uses — no logic duplicated. Run with:
+to the SAME Python backend the Tk app uses, no logic duplicated. Run with:
     .venv-app/bin/python -m app.webmain
 """
 from __future__ import annotations
@@ -32,7 +32,7 @@ WINDOW = None
 
 
 def _webui_index():
-    """Path to webui/index.html — works in dev and inside the py2app bundle.
+    """Path to webui/index.html: works in dev and inside the py2app bundle.
 
     py2app exposes bundled data files via the RESOURCEPATH env var
     (Contents/Resources); in dev we resolve relative to the repo root."""
@@ -104,7 +104,7 @@ _SENTINEL = "===GITKOSH_REPLY_BELOW==="
 
 def _ensure_ollama_ready(cfg):
     """If Ollama is the provider, auto-start the local server (when installed) and
-    pin the request to a model that's actually pulled — so a fresh selection or a
+    pin the request to a model that's actually pulled, so a fresh selection or a
     stale model name never silently fails. Mutates the in-memory cfg only."""
     llm = (cfg.get("readme", {}) or {}).get("llm", {}) or {}
     if llm.get("provider") != "ollama":
@@ -117,29 +117,29 @@ def _ensure_ollama_ready(cfg):
 
 
 def _ai_hint():
-    """A precise, actionable message for when the AI produced nothing — so the user
+    """A precise, actionable message for when the AI produced nothing, so the user
     knows exactly what to do instead of a vague 'pick an engine'."""
     llm = (load_config().get("readme", {}) or {}).get("llm", {}) or {}
     provider = llm.get("provider", "none")
     if provider in ("", "none"):
-        return ("Turn on an AI engine in **Setup → AI engine** to use this — "
+        return ("Turn on an AI engine in **Setup > AI engine** to use this, "
                 "**Ollama** is free, private and runs on your Mac.")
     if provider == "ollama":
         state, _ = ollama_setup.status()
         if state == "not_installed":
-            return ("Ollama isn't installed yet. Go to **Setup → AI engine**, click **Ollama**, "
+            return ("Ollama isn't installed yet. Go to **Setup > AI engine**, click **Ollama**, "
                     "and it will install & start automatically (one-time, a couple of GB).")
         if state == "installed_not_running":
-            return ("Ollama is installed but its server isn't running. Open **Setup → AI engine → Ollama** "
+            return ("Ollama is installed but its server isn't running. Open **Setup > AI engine > Ollama** "
                     "to start it, then try again.")
         if state == "running_no_model":
             return ("Ollama is running but still downloading its model. Give it a minute "
-                    "(re-open **Setup → AI engine → Ollama** to watch progress), then try again.")
+                    "(re-open **Setup > AI engine > Ollama** to watch progress), then try again.")
         return "Ollama didn't respond. Make sure the Ollama app is running, then try again."
     if not llm.get("api_key"):
-        return f"Add your {provider.title()} API key in **Setup → AI engine**, then try again."
-    return (f"The {provider.title()} request failed — check your API key and internet connection "
-            "in **Setup → AI engine**. (Tip: **Ollama** runs locally with no key.)")
+        return f"Add your {provider.title()} API key in **Setup > AI engine**, then try again."
+    return (f"The {provider.title()} request failed: check your API key and internet connection "
+            "in **Setup > AI engine**. (Tip: **Ollama** runs locally with no key.)")
 
 
 def _wrap(prompt):
@@ -224,7 +224,7 @@ class Api:
     def get_insights(self):
         items = _items()
         a = analytics(items)
-        opt = f"{round(100 * a['optimal'] / a['coached'])}%" if a["coached"] else "—"
+        opt = f"{round(100 * a['optimal'] / a['coached'])}%" if a["coached"] else "-"
         tiles = [["This week", a["week"]], ["This month", a["month"]], ["Streak", f"{a['current_streak']}d"],
                  ["Longest", f"{a['longest_streak']}d"], ["Optimal", opt], ["Total", a["total"]]]
         quiz = [{"title": i.get("title", ""), "platform": LABELS.get(i.get("platform"), i.get("platform")),
@@ -239,10 +239,10 @@ class Api:
         up = []
         try:
             for c in cf_upcoming()[:12]:
-                when = dt.datetime.fromtimestamp(c["start"]).strftime("%a %d %b · %H:%M") if c.get("start") else "—"
+                when = dt.datetime.fromtimestamp(c["start"]).strftime("%a %d %b · %H:%M") if c.get("start") else "-"
                 up.append({"platform": c.get("platform", ""), "name": c.get("name", "Contest"), "when": when,
                            "dur": f"{round(c.get('duration', 0) / 3600, 1)}h", "url": c.get("url", "")})
-        except Exception:  # noqa: BLE001 — a malformed/unreachable feed shouldn't blank the tab
+        except Exception:  # noqa: BLE001: a malformed/unreachable feed shouldn't blank the tab
             pass
         try:
             rating = [r for _, r in cf_rating(handle)]
@@ -287,7 +287,7 @@ class Api:
 
     def setup_ollama(self):
         """One-click local AI: install Ollama if missing, start its server, pull the
-        model — all with live progress. Idempotent (cheap once already set up)."""
+        model: all with live progress. Idempotent (cheap once already set up)."""
         cfg = load_config()
         llm = cfg.setdefault("readme", {}).setdefault("llm", {})
         llm["provider"] = "ollama"
@@ -312,7 +312,7 @@ class Api:
 
     def github_start(self):
         """Begin GitHub device-flow login. Returns the user_code to display BEFORE
-        opening the browser (GitHub shows no code itself — the user must type ours)."""
+        opening the browser (GitHub shows no code itself, the user must type ours)."""
         try:
             d = github_auth.start_device_flow(constants.GITHUB_CLIENT_ID)
             return {"ok": True, "user_code": d["user_code"],
@@ -413,7 +413,7 @@ class Api:
         except Exception as e:  # noqa: BLE001
             _prog(f"Import failed: {e}", 100)
             return {"ok": False, "error": str(e)}
-        _prog(f"✓ Imported {sc['total_files']} file(s) in {len(commits)} dated commit(s).", 100)
+        _prog(f"Imported {sc['total_files']} file(s) in {len(commits)} dated commit(s).", 100)
         _js("window.gkRefresh && window.gkRefresh()")
         return {"ok": True, "files": sc["total_files"], "commits": len(commits), "url": url}
 
@@ -421,7 +421,7 @@ class Api:
         cfg = load_config()
         gh_info = github_auth.load_github(STATE_DIR)
         if not gh_info or not (cfg.get("github") or {}).get("repo"):
-            return None  # not connected / no repo — UI shows a hint
+            return None  # not connected / no repo, UI shows a hint
         gh = GitHubAPI(gh_info["token"], cfg["github"]["repo"],
                        private=cfg["github"].get("private", True))
         gh.ensure_repo()
@@ -546,7 +546,7 @@ class Api:
         opener = (
             f"Hi! I'll be your interviewer today. Let's work on **{prob['title']}** "
             f"({prob['difficulty']} · {prob['topic']}).\n\n"
-            "Take a moment to read it, then walk me through your initial thoughts — what's your first "
+            "Take a moment to read it, then walk me through your initial thoughts: what's your first "
             "approach, and what's its time and space complexity? Ask me anything you'd like to clarify.")
         return {"ok": True, "pid": pid, "problem": prob, "opener": opener}
 
@@ -573,7 +573,7 @@ class Api:
     def voice_start(self):
         try:
             return voice.start_recording()
-        except Exception as e:  # noqa: BLE001 — return, never throw, so the UI shows the cause
+        except Exception as e:  # noqa: BLE001: return, never throw, so the UI shows the cause
             import traceback; traceback.print_exc()
             return {"ok": False, "error": f"voice_start failed: {e}"}
 
@@ -598,7 +598,7 @@ class Api:
     @staticmethod
     def _decorate_questions(qs, company, name, period):
         """Tag each question with solved / in-app / bookmarked, plus aggregate
-        totals and solved-by-difficulty — shared by company and saved-list views."""
+        totals and solved-by-difficulty, shared by company and saved-list views."""
         solved = _solved_leetcode_slugs()
         bm = set((load_config().get("bookmarks") or {}).keys())
         nsolved = 0
@@ -701,7 +701,7 @@ class Api:
                 m["_freqs"].append(q.get("frequency", 0) or 0)
                 if not m["difficulty"] and q.get("difficulty"):
                     m["difficulty"] = q["difficulty"]
-        if not merged:  # every fetch failed (e.g. offline) — don't look "all solved"
+        if not merged:  # every fetch failed (e.g. offline): don't look "all solved"
             return {"ok": False, "error": "Couldn't load your target companies (check your connection)."}
         qs = []
         for m in merged.values():
@@ -753,7 +753,7 @@ class Api:
             weights, weak = self._topic_weakness(r["questions"])
         plan = studyplan.build(r["questions"], weeks, per_day, include_solved, weights=weights)
         if not plan["total"]:
-            return {"ok": False, "error": "Nothing to schedule — you've solved everything here, "
+            return {"ok": False, "error": "Nothing to schedule: you've solved everything here, "
                     "or try including solved questions / a longer window."}
         plan.update({
             "source": source, "company": r.get("company", source),
@@ -893,7 +893,7 @@ class Api:
 
         # Decide correctness deterministically when we can, so the coaching never
         # mislabels a wrong/empty answer as correct (model-independent).
-        correct = None            # True / False / None (unknown → let the model judge)
+        correct = None            # True / False / None (unknown -> let the model judge)
         test_section = ""
         if not stub and pid in problems.TESTED:
             tr = problems.run_tests(code, pid)
@@ -961,7 +961,7 @@ class Api:
                 appr = it.get("approach", "")
                 break
         if not appr:
-            return "No reference approach is stored for this problem — re-sync with an AI provider on."
+            return "No reference approach is stored for this problem. Re-sync with an AI provider on."
         out = _ask(
             "You are a coding-interview coach. Grade my recalled approach against the reference. "
             "Reply in 3 short lines: a verdict (✅ solid / ⚠️ partial / ❌ off), what I got right, "

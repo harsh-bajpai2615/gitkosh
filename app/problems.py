@@ -1,7 +1,7 @@
 """In-app practice problems.
 
 The full NeetCode 150 (which includes Blind 75) catalog lives in
-`problem_catalog.py` — every problem is selectable, solvable in the editor, and
+`problem_catalog.py`: every problem is selectable, solvable in the editor, and
 reviewed by the AI tutor. A curated subset also ships with automated test cases
 (instant pass/fail via a generated harness); the rest are graded by AI review.
 """
@@ -12,7 +12,7 @@ import re
 from .problem_catalog import CATALOG, ORDER
 from .runner import run_python
 
-# Problems that ship with deterministic automated tests (Run tests → instant pass/fail).
+# Problems that ship with deterministic automated tests (Run tests -> instant pass/fail).
 # Function names match the catalog starters so the harness binds correctly.
 TESTED = {
     "contains-duplicate": {"func": "containsDuplicate",
@@ -34,7 +34,7 @@ TESTED = {
         "cases": [[["A man, a plan, a canal: Panama"], True], [["race a car"], False], [[" "], True]]},
     "valid-parentheses": {"func": "isValid",
         "cases": [[["()"], True], [["()[]{}"], True], [["(]"], False], [["([)]"], False]]},
-    "maximum-depth-of-binary-tree": None,  # tree input — AI review only (placeholder removed below)
+    "maximum-depth-of-binary-tree": None,  # tree input. AI review only (placeholder removed below)
 }
 # drop any None placeholders (kept above only for documentation clarity)
 TESTED = {k: v for k, v in TESTED.items() if v}
@@ -80,7 +80,7 @@ def run_tests(code, pid):
     t = TESTED.get(pid)
     if not t:
         return {"ok": False, "passed": 0, "total": 0,
-                "output": "No automated tests for this problem — use “AI Review” to check your solution."}
+                "output": "No automated tests for this problem, use “AI Review” to check your solution."}
     res = run_python(_harness(code or "", t["func"], t["cases"], t.get("unordered", False)))
     out = res["stdout"]
     passed = total = 0
@@ -88,7 +88,7 @@ def run_tests(code, pid):
     for ln in out.splitlines():
         # Only honor a strictly-formatted sentinel (so user code that happens to
         # print "__RESULT__ ..." can't crash the parser or fake a pass); the last
-        # match wins — that's the one the harness emits.
+        # match wins: that's the one the harness emits.
         m = re.fullmatch(r"__RESULT__ (\d+) (\d+)", ln)
         if m:
             passed, total = int(m.group(1)), int(m.group(2))

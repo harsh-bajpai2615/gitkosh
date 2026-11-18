@@ -2,7 +2,7 @@
 
 Full-LLM mode: the model writes the whole write-up (summary, approach, complexity,
 insights), grounded on the scraped statement/tags so it doesn't hallucinate. The
-LLM provider is pluggable — Gemini, Groq, or a local Ollama model via their HTTP APIs.
+LLM provider is pluggable: Gemini, Groq, or a local Ollama model via their HTTP APIs.
 """
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ DEFAULT_MODELS = {
 def _prompt(sub: "Submission") -> str:
     statement = sub.statement[:6000] if sub.statement else "(statement not captured — infer from the code and title)"
     # NOTE: this f-string is intentionally flush-left (no source indentation).
-    # textwrap.dedent() over an *interpolated* string is unsafe — the embedded
+    # textwrap.dedent() over an *interpolated* string is unsafe, the embedded
     # source code carries its own indentation and skews the common-whitespace
     # calculation, corrupting both the code block and the surrounding Markdown.
     tags = ", ".join(sub.tags) if sub.tags else "(none)"
@@ -109,7 +109,7 @@ def _gen_gemini(prompt: str, model: str, api_key: str, base_url: str) -> str:
             json={"contents": [{"parts": [{"text": prompt}]}]},
             timeout=120,
         )
-        if r.status_code == 429 and attempt < 2:  # rate limited — back off and retry
+        if r.status_code == 429 and attempt < 2:  # rate limited: back off and retry
             time.sleep(8 * (attempt + 1))
             continue
         r.raise_for_status()
@@ -156,7 +156,7 @@ def _stream_openai_compatible(prompt, model, api_key, base_url, on_chunk):
     with requests.post(f"{base_url.rstrip('/')}/chat/completions",
                        headers=headers, json=payload, timeout=180, stream=True) as r:
         r.raise_for_status()
-        r.encoding = "utf-8"  # SSE has no charset; requests would default to latin-1 → mojibake
+        r.encoding = "utf-8"  # SSE has no charset; requests would default to latin-1 -> mojibake
         for line in r.iter_lines(decode_unicode=True):
             if not line:
                 continue
@@ -261,7 +261,7 @@ class ReadmeGenerator:
         except Exception as e:  # noqa: BLE001
             msg = str(e)
             if "401" in msg or "API_KEY_INVALID" in msg or "UNAUTHENTICATED" in msg:
-                msg = "invalid API key (Gemini keys start with 'AIza' — get one at aistudio.google.com/apikey)"
+                msg = "invalid API key (Gemini keys start with 'AIza': get one at aistudio.google.com/apikey)"
             return False, msg
 
     def freeform(self, prompt: str) -> str:

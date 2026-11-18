@@ -1,4 +1,4 @@
-"""Push files to GitHub via the REST API using an OAuth token — no git/gh needed.
+"""Push files to GitHub via the REST API using an OAuth token, no git/gh needed.
 
 Accumulate files for a sync run, then commit them all at once with the Git Data API
 (blobs -> tree -> commit -> ref update). Handles brand-new empty repos too.
@@ -104,7 +104,7 @@ class GitHubAPI:
 
     def enable_pages(self, path: str = "/docs") -> str:
         """Enable GitHub Pages (branch=main, given path) and return the site URL.
-        Idempotent — returns the URL whether it was just created or already on."""
+        Idempotent: returns the URL whether it was just created or already on."""
         owner, repo = self._resolve()
         self.s.post(f"{API}/repos/{owner}/{repo}/pages",
                     json={"source": {"branch": self.branch, "path": path}}, timeout=30)
@@ -112,7 +112,7 @@ class GitHubAPI:
         if g.status_code == 200:
             return g.json().get("html_url") or f"https://{owner}.github.io/{repo}/"
         raise RuntimeError("couldn't enable GitHub Pages (token may lack permission). "
-                           "Enable it once under repo Settings → Pages → Branch: main /docs.")
+                           "Enable it once under repo Settings > Pages > Branch: main /docs.")
 
     def get_file_text(self, path: str) -> str:
         """Current text of a file on the default branch, or '' if absent."""
@@ -129,7 +129,7 @@ class GitHubAPI:
             return ""
         owner, repo = self._resolve()
         base_commit, base_tree = self._get_base(owner, repo)
-        if base_commit is None:  # brand-new empty repo — seed an initial commit first
+        if base_commit is None:  # brand-new empty repo, seed an initial commit first
             self._seed_initial(owner, repo)
             base_commit, base_tree = self._get_base(owner, repo)
 
@@ -174,7 +174,7 @@ class GitHubAPI:
         """Create a chain of commits, one per entry, each backdated to its own date.
 
         commits: [{"files": {path: text}, "message": str, "date": iso8601 | None}]
-        Each commit builds on the previous; the branch moves once at the end — so a big
+        Each commit builds on the previous; the branch moves once at the end, so a big
         backfill becomes many commits dated to the real solve days (fills the contribution
         graph historically). With orphan=True the chain starts from no parent (fresh
         history); force=True replaces the branch (used by reset & re-backfill).
@@ -214,7 +214,7 @@ class GitHubAPI:
             parent, tree_base, last_url = j["sha"], tree_sha, j.get("html_url", j["sha"])
         up = self.s.patch(f"{API}/repos/{owner}/{repo}/git/refs/heads/{self.branch}",
                           json={"sha": parent, "force": bool(force or orphan)}, timeout=30)
-        if up.status_code == 422:  # ref doesn't exist yet — create it
+        if up.status_code == 422:  # ref doesn't exist yet, create it
             self.s.post(f"{API}/repos/{owner}/{repo}/git/refs",
                         json={"ref": f"refs/heads/{self.branch}", "sha": parent}, timeout=30).raise_for_status()
         else:

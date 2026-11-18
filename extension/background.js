@@ -56,7 +56,7 @@ async function me(token) {
   return (await (await gh(token, "GET", "/user")).json()).login;
 }
 
-// Resolve the repo's real default branch — never assume "main" (older repos use "master").
+// Resolve the repo's real default branch, never assume "main" (older repos use "master").
 async function defaultBranch(token, owner, repo) {
   const r = await gh(token, "GET", `/repos/${owner}/${repo}`);
   return (await r.json()).default_branch || "main";
@@ -64,7 +64,7 @@ async function defaultBranch(token, owner, repo) {
 
 function readme(p) {
   return `# ${p.title}\n\n- **Platform:** LeetCode\n- **Difficulty:** ${p.difficulty}\n` +
-    `- **Tags:** ${(p.tags || []).join(", ") || "—"}\n- **Language:** ${p.lang}\n` +
+    `- **Tags:** ${(p.tags || []).join(", ") || "-"}\n- **Language:** ${p.lang}\n` +
     `- **Link:** https://leetcode.com/problems/${p.slug}/\n\n` +
     `_Synced in real time by [GitKosh](https://github.com/harsh-bajpai2615/gitkosh)._\n`;
 }
@@ -72,7 +72,7 @@ function readme(p) {
 async function base(token, owner, repo, branch) {
   let r = await gh(token, "GET", `/repos/${owner}/${repo}/git/ref/heads/${branch}`, null, { allow: [404, 409] });
   if (r.status === 404 || r.status === 409) {
-    // Empty repo — seed a README on the default branch, then re-read the ref.
+    // Empty repo: seed a README on the default branch, then re-read the ref.
     await gh(token, "PUT", `/repos/${owner}/${repo}/contents/README.md`, {
       message: "Initialize repository (GitKosh)",
       content: utf8b64("# Competitive Programming\n\nSynced by GitKosh.\n"),

@@ -1,4 +1,4 @@
-"""py2app build config — produces GitKosh.app.
+"""py2app build config, produces GitKosh.app.
 
 Build:  .venv-app/bin/python setup.py py2app
 The modern web UI (pywebview + webui/) is the default surface; the legacy

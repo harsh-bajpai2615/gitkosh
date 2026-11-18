@@ -1,4 +1,4 @@
-"""One-click local-AI setup via Ollama — no terminal, no key.
+"""One-click local-AI setup via Ollama, no terminal, no key.
 
 Detects Ollama, and if missing: downloads the official macOS app into ~/Applications,
 launches it (starts the local server), then pulls a small model via the HTTP API.
@@ -201,7 +201,7 @@ def setup(model: str = DEFAULT_MODEL, progress: Progress = None) -> str:
     if model in have or f"{model}:latest" in have:
         chosen = model
     elif have:
-        chosen = have[0]  # already downloaded — no need to pull another model
+        chosen = have[0]  # already downloaded: no need to pull another model
     else:
         pull_model(model, progress)
         chosen = model

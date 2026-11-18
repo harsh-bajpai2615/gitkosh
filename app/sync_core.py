@@ -1,4 +1,4 @@
-"""Headless sync core — shared by the GUI and the scheduled (LaunchAgent) run.
+"""Headless sync core: shared by the GUI and the scheduled (LaunchAgent) run.
 
 run_sync() discovers new accepted solutions, writes a README for each, and pushes
 them to GitHub in one commit. If there are no new solves and keep_streak is on, it
@@ -39,7 +39,7 @@ def _iso(ts):
 
 
 def _index_readme(sub) -> str:
-    """README for index-only entries (e.g. GeeksforGeeks) — no source code exists."""
+    """README for index-only entries (e.g. GeeksforGeeks): no source code exists."""
     parts = [f"# {sub.title}", "", f"- **Platform:** {sub.platform}", f"- **Link:** {sub.url}"]
     if sub.difficulty:
         parts.append(f"- **Difficulty:** {sub.difficulty}")
@@ -117,7 +117,7 @@ def _keep_streak(gh: GitHubAPI, log) -> bool:
     line = f"- {today}: kept active (automatic)\n"
     content = (prev + line) if prev else ("# Activity\n\nDays this repo stayed active:\n\n" + line)
     gh.push({"activity/streak.md": content}, f"chore: keep streak {today}")
-    log(f"No new solves — pushed a keep-streak commit for {today}.")
+    log(f"No new solves: pushed a keep-streak commit for {today}.")
     return True
 
 
@@ -142,7 +142,7 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
     rg = ReadmeGenerator(cfg["readme"])
     ok, err = rg.self_test()
     if not ok:
-        log(f"⚠️  Write-ups ({rg.provider}) not working: {err} — READMEs will be plain.")
+        log(f"Write-ups ({rg.provider}) not working: {err}. READMEs will be plain.")
 
     gh = GitHubAPI(gh_info["token"], cfg["github"]["repo"], private=cfg["github"].get("private", True))
     progress("busy", text="Preparing GitHub repo…")
@@ -169,13 +169,13 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
         if not logged.get(name):
             continue
         if name == "neetcode" and not logged.get("leetcode"):
-            log("[neetcode] needs LeetCode login too — skipping"); continue
+            log("[neetcode] needs LeetCode login too, skipping"); continue
         log(f"[{name}] fetching…")
         platcfg = dict(cfg.get("platforms", {}).get(name, {}))
         if name in DETECTORS and not platcfg.get("handle"):
             h = DETECTORS[name](session)
             if not h:
-                log(f"  ! couldn't detect {name} handle — skipping"); continue
+                log(f"  ! couldn't detect {name} handle, skipping"); continue
             platcfg["handle"] = h
             cfg.setdefault("platforms", {}).setdefault(name, {})["handle"] = h
             save_config(cfg)
@@ -215,7 +215,7 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
             if sub.code.strip():
                 readme = rg.generate(sub)
                 files = {f"{base}/solution.{sub.ext}": sub.code, f"{base}/README.md": readme}
-            else:  # index-only entry (e.g. GeeksforGeeks — no source available)
+            else:  # index-only entry (e.g. GeeksforGeeks: no source available)
                 readme = _index_readme(sub)
                 files = {f"{base}/README.md": readme}
             commits.append({
@@ -224,7 +224,7 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
                 "date": _iso(sub.timestamp),
             })
             done.append((name, sub, readme))
-            log(f"  ✓ {base}")
+            log(f"  {base}")
 
     if done:
         progress("busy", text=f"Committing {len(done)} problem(s) (backdated to solve days)…")
@@ -238,7 +238,7 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
                     "approach": _approach(readme), "optimal": parse_optimal(readme),
                 })
             result["pushed"], result["url"] = len(done), url
-            log(f"✓ Pushed {len(done)} problem(s), dated to the days you solved them. {url}")
+            log(f"Pushed {len(done)} problem(s), dated to the days you solved them. {url}")
             progress("busy", text="Updating dashboard, study exports & showcase…")
             try:
                 allitems = store.all()
@@ -249,7 +249,7 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
                 final["docs/index.html"] = render_site(allitems, owner, repo)
                 final["docs/.nojekyll"] = ""
                 final["profile/badges.md"] = badges_md(allitems, owner, repo)
-                try:  # Pillow-rendered card (optional — only in the app bundle)
+                try:  # Pillow-rendered card (optional: only in the app bundle)
                     from .cards import render_png
                     final["profile/stats.png"] = render_png(allitems, username=owner)
                 except Exception as e:  # noqa: BLE001
@@ -259,7 +259,7 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
                                   "date": None}])
             except Exception as e:  # noqa: BLE001
                 log(f"  (dashboard update skipped: {e})")
-            progress("done", text=f"✓ Done — pushed {len(done)} problem(s).", ok=True)
+            progress("done", text=f"Done: pushed {len(done)} problem(s).", ok=True)
         except Exception as e:  # noqa: BLE001
             result["error"] = str(e)
             log(f"Push failed: {e}")
@@ -268,14 +268,14 @@ def run_sync(cfg, state_dir, *, stop_on_seen=True, limit=0, keep_streak=False, r
         if keep_streak:
             try:
                 result["streak"] = _keep_streak(gh, log)
-                progress("done", text="✓ No new solves — kept your streak alive.", ok=True)
+                progress("done", text="No new solves: kept your streak alive.", ok=True)
             except Exception as e:  # noqa: BLE001
                 result["error"] = str(e)
                 log(f"Streak commit failed: {e}")
                 progress("done", text=f"Streak commit failed: {e}", ok=False)
         else:
             log("Nothing new to sync.")
-            progress("done", text="✓ Up to date — nothing new.", ok=True)
+            progress("done", text="Up to date: nothing new.", ok=True)
 
     _write_last(state_dir, result)
     return result
